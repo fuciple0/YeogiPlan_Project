@@ -1,8 +1,10 @@
-# React + Vite
+# 여기플랜(YeogiPlan)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 가장 쉬운 여행계획, 여기플랜과 함께
 
-Currently, two official plugins are available:
+### 주요 기능 
+관광지 소개 및 추천 기능
+여행일정 플래닝 기능
+여행지 리뷰 및 소통 기능
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 개발기간 : 11/1 ~ 11/14(2주)
