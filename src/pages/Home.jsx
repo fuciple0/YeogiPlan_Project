@@ -15,7 +15,7 @@ import danangImage from '../assets/home_img/danang.png';
 import tokyoImage from '../assets/home_img/tokyo.png';
 import parisImage from '../assets/home_img/paris.png';
 import spainImage from '../assets/home_img/spain.png';
-import MainCarousel from '../components/MainCarousel';
+// import MainCarousel from '../components/MainCarousel';
 
 
 const popularDestinations = [
@@ -46,7 +46,7 @@ const Home = () => {
       <Section>
         <Slogan>여행을 꿈꾸는 순간,</Slogan>
         <SearchBar />
-        <MainCarousel images={popularDestinations} />
+        {/* <MainCarousel images={popularDestinations} /> */}
       </Section>
       <Section>
         <Title>인기급상승🔥</Title>
