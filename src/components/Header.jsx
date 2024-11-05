@@ -11,7 +11,6 @@ const HeaderContainer = styled.header`
   justify-content: space-between;
   align-items: center;
   max-width: 1200px;
-  text-align: center;
 `;
 
 const LogoSection = styled.div`
