@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import DestinationCard from '../components/DestinationCard';
 import ReviewCard from '../components/ReviewCard';
+import SearchBar from '../components/SearchBar';
 
 // 이미지 import
 import jejuImage from '../assets/home_img/jeju.png';
@@ -14,6 +15,8 @@ import danangImage from '../assets/home_img/danang.png';
 import tokyoImage from '../assets/home_img/tokyo.png';
 import parisImage from '../assets/home_img/paris.png';
 import spainImage from '../assets/home_img/spain.png';
+import MainCarousel from '../components/MainCarousel';
+
 
 const popularDestinations = [
   { name: '제주도', imageUrl: jejuImage },
@@ -40,6 +43,11 @@ const bestReviews = [
 const Home = () => {
   return (
     <Container>
+      <Section>
+        <Slogan>여행을 꿈꾸는 순간,</Slogan>
+        <SearchBar />
+        <MainCarousel images={popularDestinations} />
+      </Section>
       <Section>
         <Title>인기급상승🔥</Title>
         <Subtitle>여행지 BEST 10</Subtitle>
@@ -78,6 +86,12 @@ const Container = styled.div`
 const Section = styled.section`
   margin-bottom: 40px;
 `;
+
+const Slogan = styled.h1`
+  font-size: 32px;
+  font-weight: bold;
+  color: #507DBC;
+`
 
 const Title = styled.h2`
   font-size: 24px;
