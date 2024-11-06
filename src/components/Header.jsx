@@ -4,7 +4,6 @@ import styled from 'styled-components';
 import logo from '../assets/logo.png';
 
 const HeaderContainer = styled.header`
-  //background-color: blue;
   background-color: white;
   padding: 10px 20px;
   display: flex;
@@ -20,7 +19,7 @@ const LogoSection = styled.div`
 
 const Logo = styled.img`
   width: 100%;
-  max-width: 150px; /* 로고가 너무 커지지 않도록 최대 너비 설정 */
+  max-width: 150px;
   height: auto;
   margin-right: 10px;
 `;
@@ -33,7 +32,7 @@ const NavList = styled.ul`
   padding: 0;
 
   @media (max-width: 768px) {
-    display: none; /* 모바일에서는 숨김 */
+    display: none;
   }
 `;
 
@@ -57,7 +56,7 @@ const HamburgerMenu = styled.div`
   cursor: pointer;
 
   @media (min-width: 768px) {
-    display: none; /* 데스크탑에서는 숨김 */
+    display: none;
   }
 `;
 
@@ -87,6 +86,9 @@ const Header = () => {
           </NavItem>
           <NavItem>
             <NavLink to="/list">리스트</NavLink>
+          </NavItem>
+          <NavItem>
+            <NavLink to="/login">로그인</NavLink> {/* 로그인 메뉴 추가 */}
           </NavItem>
         </NavList>
       </nav>
