@@ -3,11 +3,14 @@ import React from 'react';
 import styled from 'styled-components';
 
 // 이미지 import
+import { useState } from 'react';
+
 import tiwanImage from '../assets/talk_img/tiwan.jpg';
 import { FaPenToSquare } from "react-icons/fa6"; // 글작성 칩버튼 안에 아이콘
 import { GiTalk } from "react-icons/gi"; // 댓글 표시
 import { IoMdArrowDropdown } from "react-icons/io"; // 아래 화살표
 import { CgProfile } from "react-icons/cg"; // 프로필
+import TalkModal from '../components/TalkModal'; // Modal 컴포넌트 임포트
 
 
 const popularDestinations = [
@@ -21,6 +24,7 @@ const userProfile = {
   location: '대만 타이베이',
   travelDates: '2023-11-01 ~ 2023-11-10'
 };
+
 
 
 const TalkContainer = styled.div`
@@ -149,6 +153,11 @@ margin: 20px 0; /* 위, 아래 여백 */
 
 
 const Talk = () => {
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
   return (
     <>
      {/* 이미지 컨테이너 내부에 텍스트 오버레이를 추가 */}
@@ -159,7 +168,7 @@ const Talk = () => {
 
 {/* Chip 버튼을 이미지 아래에 추가 */}
 <ChipContainer>
-        <ChipButton>
+        <ChipButton onClick={openModal}>
         <FaPenToSquare icon={ FaPenToSquare } /> 글 작성하기</ChipButton>
         <ChipButton>장소</ChipButton>
         <ChipButton>질문</ChipButton>
@@ -180,6 +189,9 @@ const Talk = () => {
 
 
       <Divider />
+
+       {/* 모달 컴포넌트 호출 */}
+       <TalkModal isOpen={isModalOpen} onClose={closeModal} />
 
 {/* <TalkContainer>
       <Title>토크 페이지</Title>
