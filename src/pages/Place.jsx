@@ -151,25 +151,33 @@ const Place = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // 비밀번호 확인
         if (formData.password !== formData.confirmPassword) {
             setError('비밀번호가 일치하지 않습니다. 다시 입력해주세요');
             return;
         }
         setError('');
-
-        // FormData 생성 및 데이터 전송
+    
+        // FormData 생성 및 데이터 추가
         const formDataToSend = new FormData();
         formDataToSend.append('email', formData.email);
         formDataToSend.append('password', formData.password);
         formDataToSend.append('nickname', formData.nickname);
         formDataToSend.append('profile_photo', formData.profile_photo);
-
+    
+        // 서버로 전송할 데이터 확인 로그 출력
+        console.log("FormData to send:");
+        for (const [key, value] of formDataToSend.entries()) {
+            console.log(`${key}:`, value);
+        }
+    
         try {
-            const response = await fetch('http://43.201.36.203:3000/api/users/register', {
+            const response = await fetch('http://192.168.50.34:3001/api/users/register', {
                 method: 'POST',
                 body: formDataToSend,
             });
-
+    
             const data = await response.json();
             if (response.ok) {
                 alert(data.message);
@@ -183,6 +191,7 @@ const Place = () => {
             alert('An error occurred. Please try again.');
         }
     };
+    
 
     return (
         <PlaceContainer>
