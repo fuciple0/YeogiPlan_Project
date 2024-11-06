@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import DestinationCard from '../components/DestinationCard';
-import ReviewCard from '../components/ReviewCard';
+import ReviewCard from '../components/RecommendPlaceCard';
 import SearchBar from '../components/SearchBar';
+import MainCarousel from '../components/MainCarousel';
+import SearchModal from '../components/SearchModal';
+import BestCardSlider from '../components/\bBestCardSlider';
 
 // 이미지 import
 import jejuImage from '../assets/home_img/jeju.png';
@@ -15,7 +18,11 @@ import danangImage from '../assets/home_img/danang.png';
 import tokyoImage from '../assets/home_img/tokyo.png';
 import parisImage from '../assets/home_img/paris.png';
 import spainImage from '../assets/home_img/spain.png';
-// import MainCarousel from '../components/MainCarousel';
+import incheonAirport from '../assets/home_img/airport.jpg'
+import hanlasan from '../assets/home_img/hanla.jpg'
+import waterfall from '../assets/home_img/waterfall.jpg'
+import chumsungdae from '../assets/home_img/tower.jpg'
+import RecommendPlaceCard from '../components/RecommendPlaceCard';
 
 
 const popularDestinations = [
@@ -31,27 +38,41 @@ const popularDestinations = [
   { name: '스페인', imageUrl: spainImage },
 ];
 
-const bestReviews = [
-  { name: '제주', imageUrl: jejuImage },
-  { name: '서울', imageUrl: seoulImage },
-  { name: '부산', imageUrl: busanImage },
-  { name: '경주', imageUrl: gyeongjuImage },
-  { name: '오사카', imageUrl: tokyoImage },
-  { name: '다낭', imageUrl: danangImage },
+const howAboutThis = [
+  { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시'},
+  { name: '인천공항', imageUrl: incheonAirport, location: '인천광역시' },
+  { name: '한라산', imageUrl: hanlasan, location: '제주 서귀포시'},
+  { name: '첨성대', imageUrl: chumsungdae, location: '경북 경주시' },
+  { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시'},
 ];
 
 const Home = () => {
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleSearchBarClick = () => {
+    setIsModalOpen(true)  // 모달 열기
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)  // 모달 닫기
+  }
+
   return (
     <Container>
       <Section>
         <Slogan>여행을 꿈꾸는 순간,</Slogan>
-        <SearchBar />
-        {/* <MainCarousel images={popularDestinations} /> */}
+        <SearchBar onClick={handleSearchBarClick} isReadOnly={true}/>
+        <MainCarousel images={popularDestinations} />
       </Section>
+
+      <SearchModal isOpen={isModalOpen} onClose={handleCloseModal}/>
+      
       <Section>
-        <Title>인기급상승🔥</Title>
-        <Subtitle>여행지 BEST 10</Subtitle>
-        <Grid>
+        <Title>지금 뜨고 있는 여행지 🔥</Title>
+        <Subtitle>BEST 10</Subtitle>
+        <BestCardSlider items={popularDestinations} />
+        {/* <Grid>
           {popularDestinations.map((destination, index) => (
             <DestinationCard
               key={index}
@@ -59,16 +80,22 @@ const Home = () => {
               imageUrl={destination.imageUrl}
             />
           ))}
-        </Grid>
+        </Grid> */}
       </Section>
 
       <Section>
-        <SectionTitle>베스트 리뷰</SectionTitle>
-        <ReviewGrid>
-          {bestReviews.map((review, index) => (
+        <SectionTitle>이런 곳은 어때요?</SectionTitle>
+        <RecommendGrid>
+          {howAboutThis.map((place, index) => (
+            <RecommendPlaceCard key={index} imageUrl={howAboutThis.imageUrl} name={howAboutThis.name} location={howAboutThis.location} />
+          ))}
+        </RecommendGrid>
+        
+        {/* <ReviewGrid>
+          {howAboutThis.map((review, index) => (
             <ReviewCard key={index} name={review.name} imageUrl={review.imageUrl} />
           ))}
-        </ReviewGrid>
+        </ReviewGrid> */}
       </Section>
     </Container>
   );
@@ -81,56 +108,61 @@ const Container = styled.div`
   margin: 0 auto;
   padding: 20px;
   background-color: white;
-`;
+`
 
 const Section = styled.section`
   margin-bottom: 40px;
-`;
+`
 
 const Slogan = styled.h1`
+  font-family: 'Paperlogy-8ExtraBold','Spoqa Han Sans', sans-serif;
   font-size: 32px;
-  font-weight: bold;
   color: #507DBC;
 `
 
 const Title = styled.h2`
   font-size: 24px;
   font-weight: bold;
-  margin-bottom: 10px;
-`;
+`
 
 const Subtitle = styled.p`
   font-size: 18px;
-  margin-bottom: 20px;
-`;
+`
 
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 15px;
+const RecommendGrid = styled.div`
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+`
 
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
+// const Grid = styled.div`
+//   display: grid;
+//   grid-template-columns: repeat(5, 1fr);
+//   gap: 15px;
 
-  @media (max-width: 992px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
+//   @media (max-width: 1200px) {
+//     grid-template-columns: repeat(4, 1fr);
+//   }
 
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
+//   @media (max-width: 992px) {
+//     grid-template-columns: repeat(3, 1fr);
+//   }
 
-  @media (max-width: 576px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-`;
+//   @media (max-width: 768px) {
+//     grid-template-columns: repeat(2, 1fr);
+//   }
+
+//   @media (max-width: 576px) {
+//     grid-template-columns: repeat(2, 1fr);
+//   }
+// `;
 
 const SectionTitle = styled.h3`
   font-size: 20px;
   font-weight: bold;
-  margin-bottom: 10px;
-`;
+`
 
 const ReviewGrid = styled.div`
   display: grid;
