@@ -3,6 +3,36 @@ import React from 'react';
 import styled from 'styled-components';
 import logoFly from '../assets/talk_img/logo_fly.png';
 
+
+
+
+
+
+const TalkLocationModal = ({ isOpen, onClose, onSelect }) => {
+  if (!isOpen) return null;
+
+  return (
+    <ModalOverlay onClick={onClose}>
+      <ModalContent onClick={(e) => e.stopPropagation()}>
+        <ModalWrapper>
+        <LogoContainer>
+        <ModalTitle>여행 지역 선택</ModalTitle>
+        <LogoImage src={logoFly} alt="Logo" />
+        </LogoContainer>
+        </ModalWrapper>
+         <Divider/>
+        <ButtonContainer>
+        <OptionButton onClick={() => onSelect("해외")}>해외</OptionButton>
+        <OptionButton onClick={() => onSelect("국내")}>국내</OptionButton>
+        </ButtonContainer>
+      </ModalContent>
+    </ModalOverlay>
+  );
+};
+
+export default TalkLocationModal;
+
+
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -88,30 +118,3 @@ const ModalWrapper = styled.div`
   justify-content: center;
   height: 100%; /* 필요한 경우 높이를 100%로 설정 */
 `;
-
-
-
-
-const TalkLocationModal = ({ isOpen, onClose, onSelect }) => {
-  if (!isOpen) return null;
-
-  return (
-    <ModalOverlay onClick={onClose}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
-        <ModalWrapper>
-        <LogoContainer>
-        <ModalTitle>여행 지역 선택</ModalTitle>
-        <LogoImage src={logoFly} alt="Logo" />
-        </LogoContainer>
-        </ModalWrapper>
-         <Divider/>
-        <ButtonContainer>
-        <OptionButton onClick={() => onSelect("해외")}>해외</OptionButton>
-        <OptionButton onClick={() => onSelect("국내")}>국내</OptionButton>
-        </ButtonContainer>
-      </ModalContent>
-    </ModalOverlay>
-  );
-};
-
-export default TalkLocationModal;

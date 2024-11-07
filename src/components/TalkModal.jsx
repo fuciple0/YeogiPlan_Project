@@ -8,12 +8,20 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [selectedTags, setSelectedTags] = useState([]); // 선택된 태그 상태
+
+  const handleTagClick = (tag) => {
+    setSelectedTags((prev) => 
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
 
 
     const handleConfirm = () => {
-    onConfirm(title, content); // 상위 컴포넌트에 제목과 내용을 전달
+    onConfirm(title, content,selectedTags); // 상위 컴포넌트에 제목과 내용을 전달
     setTitle(''); // 입력값 초기화
     setContent('');
+    setSelectedTags([]);
     onClose(); // 모달 닫기
   };
 
@@ -24,12 +32,14 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
       <ModalContent>
        <TitleContainer>
         <ModalTitle>글 작성하기</ModalTitle>
-        {/* Chip 버튼을 이미지 아래에 추가 */}
-        {/* <ChipContainer>
-        <ChipButton>장소</ChipButton>
-        <ChipButton>질문</ChipButton>
-        <ChipButton>날씨</ChipButton>
-      </ChipContainer> */}
+        <ChipContainer>
+        <ChipButton  active={selectedTags.includes("장소")}
+              onClick={() => handleTagClick("장소")}>장소</ChipButton>
+        <ChipButton  active={selectedTags.includes("질문")}
+              onClick={() => handleTagClick("질문")} >질문</ChipButton>
+        <ChipButton active={selectedTags.includes("날씨")}
+              onClick={() => handleTagClick("날씨")}>날씨</ChipButton>
+      </ChipContainer>
       </TitleContainer>
       
         <Input
@@ -43,14 +53,31 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
+        <Divider/>
         <ModalButtons>
           <Button className="cancel" onClick={onClose}>취소</Button>
-          <Button className="confirm" onClick={handleConfirm}>확인</Button>
+          < VerticalLine/>
+          <Button className="confirm" onClick={handleConfirm}>작성완료</Button>
         </ModalButtons>
       </ModalContent>
     </ModalOverlay>
   );
 };
+
+export default TalkModal;
+
+
+
+const Divider = styled.div`
+  height: 0.5px;
+  background-color: #d3d3d3;
+`;
+
+const VerticalLine = styled.div`
+  border-left: 1px solid #d3d3d3;
+  height: 70px; /* 선의 높이 */
+  margin: 0 10px ; /* 주변 요소와의 간격 */
+`;
 
 
 // 모달 스타일
@@ -76,9 +103,10 @@ const ModalContent = styled.div`
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
 `;
 const TitleContainer = styled.div`
+  display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  gap: 20px; /* 타이틀과 칩 버튼 사이의 간격 */
+  margin-bottom: 10px;
 `;
 
 const ModalTitle = styled.h2`
@@ -122,18 +150,21 @@ const Button = styled.button`
 
   &.cancel {
     width: 50%;
-    background-color: #f0f0f0;
+    background-color: white;
     color: #333;
+    font-weight: bold;
   }
 
   &.confirm {
     width: 50%;
-    background-color: #507DBC;
-    color: white;
+    background-color: white;
+    font-weight: bold;
+    color: #507DBC;
   }
 
   &:hover {
-  font-weight: bold;
+  font-weight: bolder;
+  background-color: #e6e9ee;
   }
 `;
 
@@ -141,7 +172,7 @@ const Button = styled.button`
 const ChipContainer = styled.div`
   display: flex;
   gap: 10px; /* 칩 버튼 간의 간격 */
-  padding: 10px 0;
+ 
 `;
 
 const ChipButton = styled.button`
@@ -150,8 +181,8 @@ const ChipButton = styled.button`
   border: 1px solid #d3d3d3;
   align-items: center; /* 아이콘과 텍스트를 수평 정렬 */
   border-radius: 16px;
-  background-color: white;
-  color: #333;
+  background-color: ${({ active }) => (active ? "#507DBC" : "white")};
+  color: ${({ active }) => (active ? "white" : "#333")};
   font-size: 14px;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -178,4 +209,4 @@ const ChipButton = styled.button`
 
 
 
-export default TalkModal;
+

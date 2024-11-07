@@ -5,7 +5,7 @@ import ReviewCard from '../components/RecommendPlaceCard';
 import SearchBar from '../components/SearchBar';
 import MainCarousel from '../components/MainCarousel';
 import SearchModal from '../components/SearchModal';
-import BestCardSlider from '../components/\bBestCardSlider';
+import BestCardSlider from '../components/BestCardSlider';
 
 // 이미지 import
 import jejuImage from '../assets/home_img/jeju.png';
