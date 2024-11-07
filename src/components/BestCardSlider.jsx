@@ -11,6 +11,7 @@ const BestCardSlider = ({items}) => {
     // 화면 크기에 따라 isMobile 값을 업데이트
     useEffect(() => {
         const handleResize = () => {
+
             const mobileView = window.innerWidth <= 768
             if(isMobile !== mobileView) {
                 setIsMobile(mobileView)
@@ -31,11 +32,14 @@ const BestCardSlider = ({items}) => {
     const handleNext = () => {
         // currentIndex가 아이템의 개수 - 5에 도달하면 0으로 돌아갑니다
         setCurrentIndex((prevIndex) => (prevIndex + itemToShow) % items.length);
+
+
     };
 
     const handlePrev = () => {
         // currentIndex가 0보다 작아지면 마지막 5개로 돌아갑니다
         setCurrentIndex((prevIndex) => 
+
             prevIndex === 0 ? items.length - itemToShow : prevIndex - itemToShow
         );
     };
@@ -47,7 +51,9 @@ const BestCardSlider = ({items}) => {
                 <BsArrowLeftCircle size={30} />
             </ArrowButton>
             <SliderContainer>
+
                 <CardWrapper $currentIndex={currentIndex} $itemToShow={itemToShow}>
+
                     {items.map((item, index) => (
                         <Card key={index}>
                             <img src={item.imageUrl} alt={item.name} />
@@ -86,6 +92,7 @@ const CardWrapper = styled.div`
     padding: 0 8px; /* 양쪽에 패딩을 추가하여 첫 번째와 마지막 카드가 잘리지 않도록 설정 */
     box-sizing: border-box;
     transition: transform 0.5s ease-in-out;
+
     transform: ${({ $currentIndex, $itemToShow }) => `translateX(-${$currentIndex * (100 / $itemToShow)}%)`
     }
 `
