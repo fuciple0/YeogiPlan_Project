@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FaCamera, FaEye, FaEyeSlash } from 'react-icons/fa';
 import default_profile from '../assets/user_profile.png';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../store/userSlice';
 
 const PlaceContainer = styled.div`
   padding: 20px;
@@ -13,7 +15,7 @@ const PlaceContainer = styled.div`
 
 const ProfileWrapper = styled.div`
   position: relative;
-  margin-bottom: 20px; /* 프로필 이미지와 폼 간격 추가 */
+  margin-bottom: 20px;
 `;
 
 const ProfileContainer = styled.div`
@@ -65,7 +67,6 @@ const Form = styled.form`
 const InputContainer = styled.div`
   width: 100%;
   position: relative;
-  //margin-bottom: 10px;
 `;
 
 const Label = styled.label`
@@ -87,7 +88,6 @@ const Input = styled.input`
   background-color: #f8f8f8;
   color: #333;
   outline: none;
-  //margin-bottom: 0.5rem;
 `;
 
 const EyeIcon = styled.div`
@@ -111,7 +111,7 @@ const Button = styled.button`
   padding: 12px;
   font-size: 16px;
   font-weight: bold;
-  background-color: #507DBC; /* 버튼 색상 변경 */
+  background-color: #507DBC;
   color: white;
   border: none;
   border-radius: 5px;
@@ -121,6 +121,8 @@ const Button = styled.button`
 `;
 
 const Place = () => {
+    const dispatch = useDispatch();
+
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -142,7 +144,7 @@ const Place = () => {
         const file = e.target.files[0];
         if (file) {
             setFormData({ ...formData, profile_photo: file });
-            setProfileImage(URL.createObjectURL(file)); // 미리보기 이미지를 설정합니다.
+            setProfileImage(URL.createObjectURL(file));
         }
     };
 
@@ -151,36 +153,43 @@ const Place = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // 비밀번호 확인
         if (formData.password !== formData.confirmPassword) {
             setError('비밀번호가 일치하지 않습니다. 다시 입력해주세요');
             return;
         }
         setError('');
-    
+
         // FormData 생성 및 데이터 추가
         const formDataToSend = new FormData();
         formDataToSend.append('email', formData.email);
         formDataToSend.append('password', formData.password);
         formDataToSend.append('nickname', formData.nickname);
         formDataToSend.append('profile_photo', formData.profile_photo);
-    
-        // 서버로 전송할 데이터 확인 로그 출력
-        console.log("FormData to send:");
-        for (const [key, value] of formDataToSend.entries()) {
-            console.log(`${key}:`, value);
-        }
-    
+
         try {
             const response = await fetch('http://192.168.50.34:3001/api/users/register', {
                 method: 'POST',
                 body: formDataToSend,
             });
-    
+
             const data = await response.json();
+
             if (response.ok) {
                 alert(data.message);
+                // Redux에 사용자 정보 저장
+                dispatch(setUser({
+                    userInfo: {
+                        userId: data.userId,
+                        email: formData.email,
+                        nickname: formData.nickname,
+                        role: 'member'
+                    },
+                    token: data.token,
+                    preferences: { theme: 'dark', language: 'ko' }
+                }));
+
                 setFormData({ email: '', password: '', confirmPassword: '', nickname: '', profile_photo: null });
                 setProfileImage(null); // 프로필 이미지 초기화
             } else {
@@ -191,7 +200,6 @@ const Place = () => {
             alert('An error occurred. Please try again.');
         }
     };
-    
 
     return (
         <PlaceContainer>
