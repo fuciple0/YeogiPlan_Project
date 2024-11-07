@@ -3,12 +3,15 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FaStar } from 'react-icons/fa';
 import ReviewForm from './ReviewForm';
+import default_profile from '../assets/user_profile.png';
+import ReviewList from './ReviewList';
 
 const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
 
     const [ rating, setRating ] = useState(0)
     const [ hoveredRating, setHoveredRating ] = useState(0);  // 임시로 별점을 저장하는 상태
     const [ showReviewForm, setShowReviewForm ] = useState(false)
+    const [ reviews, setReviews] = useState([]) // 리뷰 목록 상태 추가
 
     if (!isOpen || !place) return null;
 
@@ -18,7 +21,15 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
     }
 
     const handleReviewSubmit = (reviewText, selectedImages) => {
-        console.log('Review Submitted: ', reviewText, selectedImages)
+        const newReview = {
+          profileImage: default_profile,
+          nickname: '익명',
+          rating,
+          text: reviewText,
+          images: selectedImages,
+          usefulCount: 10,
+        }
+        setReviews([newReview, ...reviews]) // 최신 리뷰가 위로 오도록
         setShowReviewForm(false)  // 리뷰 작성 완료 시 리뷰작성폼 숨기기
         setRating(0)
     }
@@ -74,6 +85,8 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
                     <ReviewForm onSubmit={handleReviewSubmit} onCancel={handleReviewCancel} />
                 )}
             </ReviewFormContainer>
+            {/* 리뷰 목록 */}
+            <ReviewList reviews={reviews} />
             </BottomSection>
         </ModalContent>
         </Overlay>

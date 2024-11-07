@@ -70,6 +70,7 @@ const ReviewForm = ({ onSubmit, onCancel }) => {
                 <CancelButton onClick={onCancel}>취소</CancelButton>
                 <SubmitButton onClick={handleSubmit}>작성완료</SubmitButton>
             </ButtonContainer>
+
         </FormContainer>
     );
 };
@@ -84,13 +85,13 @@ const Dropdown = styled.select`
   width: 100%;
   padding: 8px;
   margin-bottom: 10px;
+  outline: none;
 `
 
 const ImageUploadContainer = styled.div`
   display: flex;
   align-items: center;
   margin-top: 16px;
-  ma
 `
 
 const ImageUploadButton = styled.div`
