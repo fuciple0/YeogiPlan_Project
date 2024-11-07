@@ -8,7 +8,7 @@ const MainCarousel = ({images}) => {
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentIndex((prevIndex) => prevIndex === images.length - 1 ? 0 : prevIndex + 1)
-        }, 10000)  // 5초
+        }, 6000)  // 6초
 
         return (
             () => clearInterval(interval) // component unmount 시 interval 제거

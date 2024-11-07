@@ -1,10 +1,10 @@
 import React from "react";
 import styled from "styled-components";
 
-const RecommendPlaceCard = ({ imageUrl, name, location }) => {
+const RecommendPlaceCard = ({ imageUrl, name, location, onImageClick }) => {
     return (
         <CircleCard>
-            <CircleImage src={imageUrl} alt={name} />
+            <CircleImage src={imageUrl} alt={name} onClick={onImageClick} />
             <Title>{name}</Title>
             <Subtitle>{location}</Subtitle>
         </CircleCard>

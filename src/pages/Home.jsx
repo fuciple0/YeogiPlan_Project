@@ -23,6 +23,7 @@ import hanlasan from '../assets/home_img/hanla.jpg'
 import waterfall from '../assets/home_img/waterfall.jpg'
 import chumsungdae from '../assets/home_img/tower.jpg'
 import RecommendPlaceCard from '../components/RecommendPlaceCard';
+import DetailPlaceInfoModal from '../components/DetailPlaceInfoModal';
 
 
 const popularDestinations = [
@@ -40,7 +41,7 @@ const popularDestinations = [
 
 const howAboutThis = [
   { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시'},
-  { name: '인천공항', imageUrl: incheonAirport, location: '인천광역시' },
+  { name: '인천공항', imageUrl: incheonAirport, location: '인천광역시 중구' },
   { name: '한라산', imageUrl: hanlasan, location: '제주 서귀포시'},
   { name: '첨성대', imageUrl: chumsungdae, location: '경북 경주시' },
   { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시'},
@@ -48,55 +49,66 @@ const howAboutThis = [
 
 const Home = () => {
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const [selectedPlace, setSelectedPlace] = useState(null)
 
-  const handleSearchBarClick = () => {
-    setIsModalOpen(true)  // 모달 열기
+  const openSearchModal = () => {
+    setIsSearchModalOpen(true)
   }
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false)  // 모달 닫기
+  const closeSearchModal = () => {
+    setIsSearchModalOpen(false)
+  }
+
+  const openDetailModal = (place) => {
+    setSelectedPlace(place)
+    setIsDetailModalOpen(true)
+  }
+
+  const closeDetailModal = () => {
+    setIsDetailModalOpen(false)
+    setSelectedPlace(null)
   }
 
   return (
     <Container>
       <Section>
         <Slogan>여행을 꿈꾸는 순간,</Slogan>
-        <SearchBar onClick={handleSearchBarClick} isReadOnly={true}/>
+        <SearchBar onClick={openSearchModal} isReadOnly={true}/>
         <MainCarousel images={popularDestinations} />
       </Section>
 
-      <SearchModal isOpen={isModalOpen} onClose={handleCloseModal}/>
+      <SearchModal isOpen={isSearchModalOpen} onClose={closeSearchModal} />
       
       <Section>
         <Title>지금 뜨고 있는 여행지 🔥</Title>
         <Subtitle>BEST 10</Subtitle>
         <BestCardSlider items={popularDestinations} />
-        {/* <Grid>
-          {popularDestinations.map((destination, index) => (
-            <DestinationCard
-              key={index}
-              name={destination.name}
-              imageUrl={destination.imageUrl}
-            />
-          ))}
-        </Grid> */}
       </Section>
 
       <Section>
-        <SectionTitle>이런 곳은 어때요?</SectionTitle>
+        <Title>이런 곳은 어때요?</Title>
         <RecommendGrid>
           {howAboutThis.map((place, index) => (
-            <RecommendPlaceCard key={index} imageUrl={howAboutThis.imageUrl} name={howAboutThis.name} location={howAboutThis.location} />
+            <RecommendPlaceCard 
+              key={index} 
+              imageUrl={place.imageUrl} 
+              name={place.name} 
+              location={place.location} 
+              onImageClick={() => openDetailModal(place)}/>
           ))}
         </RecommendGrid>
-        
-        {/* <ReviewGrid>
-          {howAboutThis.map((review, index) => (
-            <ReviewCard key={index} name={review.name} imageUrl={review.imageUrl} />
-          ))}
-        </ReviewGrid> */}
       </Section>
+
+      {isDetailModalOpen && selectedPlace && (
+        <DetailPlaceInfoModal
+          isOpen={isDetailModalOpen}
+          onClose={closeDetailModal}
+          place={selectedPlace}
+        />
+      )}
+
     </Container>
   );
 };
@@ -125,63 +137,14 @@ const Title = styled.h2`
   font-weight: bold;
 `
 
-const Subtitle = styled.p`
+const Subtitle = styled.h3`
   font-size: 18px;
 `
 
 const RecommendGrid = styled.div`
   display: flex;
-  justify-content: space-around;
+  justify-content: space-evenly;
   gap: 20px;
   flex-wrap: wrap;
   margin-top: 20px;
 `
-
-// const Grid = styled.div`
-//   display: grid;
-//   grid-template-columns: repeat(5, 1fr);
-//   gap: 15px;
-
-//   @media (max-width: 1200px) {
-//     grid-template-columns: repeat(4, 1fr);
-//   }
-
-//   @media (max-width: 992px) {
-//     grid-template-columns: repeat(3, 1fr);
-//   }
-
-//   @media (max-width: 768px) {
-//     grid-template-columns: repeat(2, 1fr);
-//   }
-
-//   @media (max-width: 576px) {
-//     grid-template-columns: repeat(2, 1fr);
-//   }
-// `;
-
-const SectionTitle = styled.h3`
-  font-size: 20px;
-  font-weight: bold;
-`
-
-const ReviewGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 15px;
-
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  @media (max-width: 992px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 576px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-`;
