@@ -2,13 +2,20 @@ import React from 'react';
 import styled from 'styled-components';
 import { useState } from 'react';
 
-
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser } from '../store/userSlice';
 
 const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedTags, setSelectedTags] = useState([]); // 선택된 태그 상태
+
+
+   // Redux 상태에서 로그인 정보 가져오기
+   const userInfo = useSelector((state) => state.user.userInfo);
+   const token = useSelector((state) => state.user.token);
+ 
 
   const handleTagClick = (tag) => {
     setSelectedTags((prev) => 
@@ -53,6 +60,17 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
+        {/* Redux에서 가져온 사용자 정보 화면에 표시 */}
+        <UserInfoContainer>
+          <p>로그인한 사용자 정보:</p>
+          <p>유저번호: {userInfo?.userId || "로그인 정보 없음"}</p>
+          <p>이메일: {userInfo?.email || "로그인 정보 없음"}</p>
+          <p>닉네임: {userInfo?.nickname || "로그인 정보 없음"}</p>
+          <p>토큰: {token || "토큰 없음"}</p>
+        </UserInfoContainer>
+
+
+
         <Divider/>
         <ModalButtons>
           <Button className="cancel" onClick={onClose}>취소</Button>
@@ -65,6 +83,15 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
 };
 
 export default TalkModal;
+
+// 리덕스 테스트용 스타일
+const UserInfoContainer = styled.div`
+  margin: 20px 0;
+  padding: 10px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  color: #333;
+`;
 
 
 
