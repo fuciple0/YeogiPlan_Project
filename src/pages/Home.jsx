@@ -24,6 +24,7 @@ import waterfall from '../assets/home_img/waterfall.jpg'
 import chumsungdae from '../assets/home_img/tower.jpg'
 import RecommendPlaceCard from '../components/RecommendPlaceCard';
 import DetailPlaceInfoModal from '../components/DetailPlaceInfoModal';
+import SearchModalgoogle from '../components/SearchModalwithGoogleAPI'; //구글api 키워드 검색
 
 
 const popularDestinations = [
@@ -40,11 +41,11 @@ const popularDestinations = [
 ];
 
 const howAboutThis = [
-  { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시'},
+  { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시' },
   { name: '인천공항', imageUrl: incheonAirport, location: '인천광역시 중구' },
-  { name: '한라산', imageUrl: hanlasan, location: '제주 서귀포시'},
+  { name: '한라산', imageUrl: hanlasan, location: '제주 서귀포시' },
   { name: '첨성대', imageUrl: chumsungdae, location: '경북 경주시' },
-  { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시'},
+  { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시' },
 ];
 
 const Home = () => {
@@ -75,12 +76,12 @@ const Home = () => {
     <Container>
       <Section>
         <Slogan>여행을 꿈꾸는 순간,</Slogan>
-        <SearchBar onClick={openSearchModal} isReadOnly={true}/>
+        <SearchBar onClick={openSearchModal} isReadOnly={true} />
         <MainCarousel images={popularDestinations} />
       </Section>
 
-      <SearchModal isOpen={isSearchModalOpen} onClose={closeSearchModal} />
-      
+      <SearchModalgoogle isOpen={isSearchModalOpen} onClose={closeSearchModal} />
+
       <Section>
         <Title>지금 뜨고 있는 여행지 🔥</Title>
         <Subtitle>BEST 10</Subtitle>
@@ -91,12 +92,12 @@ const Home = () => {
         <Title>이런 곳은 어때요?</Title>
         <RecommendGrid>
           {howAboutThis.map((place, index) => (
-            <RecommendPlaceCard 
-              key={index} 
-              imageUrl={place.imageUrl} 
-              name={place.name} 
-              location={place.location} 
-              onImageClick={() => openDetailModal(place)}/>
+            <RecommendPlaceCard
+              key={index}
+              imageUrl={place.imageUrl}
+              name={place.name}
+              location={place.location}
+              onImageClick={() => openDetailModal(place)} />
           ))}
         </RecommendGrid>
       </Section>
