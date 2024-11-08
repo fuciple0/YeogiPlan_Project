@@ -232,8 +232,3 @@ const ChipButton = styled.button`
     font-size: 16px;
   }
   `;
-
-
-
-
-
