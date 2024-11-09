@@ -1,5 +1,5 @@
 // src/components/DetailPlaceInfoModal.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaStar } from 'react-icons/fa';
 import ReviewForm from './ReviewForm';
@@ -7,93 +7,118 @@ import default_profile from '../assets/user_profile.png';
 import ReviewList from './ReviewList';
 
 const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
+  const [apiData, setApiData] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviews, setReviews] = useState([]);
 
-    const [ rating, setRating ] = useState(0)
-    const [ hoveredRating, setHoveredRating ] = useState(0);  // 임시로 별점을 저장하는 상태
-    const [ showReviewForm, setShowReviewForm ] = useState(false)
-    const [ reviews, setReviews] = useState([]) // 리뷰 목록 상태 추가
-
-    if (!isOpen || !place) return null;
-
-    const handleRatingClick = (rate) => {
-        setRating(rate)
-        setShowReviewForm(true)
+  useEffect(() => {
+    if (place && place.name) {
+      fetch(`http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${encodeURIComponent(place.name)}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.places && data.places[0]) {
+            setApiData({
+              description: data.places[0].description,
+              address: data.places[0].address,
+              hours: data.places[0].operating_hours,
+              phone: data.places[0].phone_number,
+              holidays: "",  // 만약 휴무일 정보가 필요하다면, 별도로 처리해야 합니다.
+            });
+          }
+        })
+        .catch(err => console.error('API fetch error:', err));
     }
+  }, [place]);
 
-    const handleReviewSubmit = (reviewText, selectedImages) => {
-        const newReview = {
-          profileImage: default_profile,
-          nickname: '익명',
-          rating,
-          text: reviewText,
-          images: selectedImages,
-          usefulCount: 10,
-        }
-        setReviews([newReview, ...reviews]) // 최신 리뷰가 위로 오도록
-        setShowReviewForm(false)  // 리뷰 작성 완료 시 리뷰작성폼 숨기기
-        setRating(0)
-    }
 
-    const handleReviewCancel = () => {
-        setShowReviewForm(false) // 취소 시 리뷰작성폼 숨기기
-        setRating(0)
-    }
+  if (!isOpen || !place) return null;
 
-    return (
-        <Overlay onClick={onClose}>
-        <ModalContent onClick={(e) => e.stopPropagation()}>
-            <TopSection>
-            <ImageContainer>
-                <PlaceImage src={place.imageUrl} alt={place.name} />
-            </ImageContainer>
-            <InfoContainer>
-                <PlaceName>{place.name}</PlaceName>
-                <PlaceDescription>
-                {place.description || "제주도에 위치한 남한에서 가장 높은 산이자, 대한민국의 가장 높은 국립공원"}
-                </PlaceDescription>
-                <Rating>
-                <FaStar color="#FFC978" /> 4.8
-                </Rating>
-                <Details>
-                <DetailItem><strong>주소 :</strong> 제주 서귀포시 토평동 산15-1</DetailItem>
-                <DetailItem><strong>운영시간 :</strong> 오전 8시 ~ 오후 6시</DetailItem>
-                <DetailItem><strong>전화번호 :</strong> 064-713-9950</DetailItem>
-                <DetailItem><strong>휴무일 :</strong> 연중무휴</DetailItem>
-                </Details>
-            </InfoContainer>
-            </TopSection>
-            <BottomSection>
-            <ReviewTitle>리뷰</ReviewTitle>
-            <StarContainer>
-                {[1, 2, 3, 4, 5].map((star) => (
-                <StarIcon 
-                    key={star} 
-                    selected={star <= (hoveredRating || rating)} 
-                    onClick={() => handleRatingClick(star)}
-                    onMouseEnter={() => setHoveredRating(star)}  // 별점에 마우스 올리면 임시 상태 업데이트
-                    onMouseLeave={() => setHoveredRating(0)}  // 마우스 나가면 임시 상태 초기화
-                    >
-                    <FaStar />
-                </StarIcon>
-                ))}
-            </StarContainer>
-            {!showReviewForm && (
-                <ReviewMessage>별점을 남겨주세요!</ReviewMessage>
-            )}
-            <ReviewFormContainer show={showReviewForm}>
-                {showReviewForm && (
-                    <ReviewForm onSubmit={handleReviewSubmit} onCancel={handleReviewCancel} />
-                )}
-            </ReviewFormContainer>
-            {/* 리뷰 목록 */}
-            <ReviewList reviews={reviews} />
-            </BottomSection>
-        </ModalContent>
-        </Overlay>
-    );
+  const handleRatingClick = (rate) => {
+    setRating(rate);
+    setShowReviewForm(true);
+  };
+
+  const handleReviewSubmit = (reviewText, selectedImages) => {
+    const newReview = {
+      profileImage: default_profile,
+      nickname: '익명',
+      rating,
+      text: reviewText,
+      images: selectedImages,
+      usefulCount: 10,
     };
+    setReviews([newReview, ...reviews]);
+    setShowReviewForm(false);
+    setRating(0);
+  };
+
+  const handleReviewCancel = () => {
+    setShowReviewForm(false);
+    setRating(0);
+  };
+
+  return (
+    <Overlay onClick={onClose}>
+      <ModalContent onClick={(e) => e.stopPropagation()}>
+        <TopSection>
+          <ImageContainer>
+            <PlaceImage src={place.imageUrl} alt={place.name} />
+          </ImageContainer>
+          <InfoContainer>
+            <PlaceName>{place.name}</PlaceName>
+            <PlaceDescription>
+              {apiData?.description || ""}
+            </PlaceDescription>
+            <Rating>
+              <FaStar color="#FFC978" /> 4.8
+            </Rating>
+            <Details>
+              <DetailItem><strong>주소:</strong> {apiData?.address || ""}</DetailItem>
+              <DetailItem>
+                <strong>운영시간:</strong>
+                {apiData?.hours && apiData.hours.length > 0 ? (
+                  apiData.hours.map((hour, index) => (
+                    <span key={index}>{hour}<br /></span>
+                  ))
+                ) : ""}
+              </DetailItem>
+              <DetailItem><strong>전화번호:</strong> {apiData?.phone || ""}</DetailItem>
+              <DetailItem><strong>휴무일:</strong> {apiData?.holidays || ""}</DetailItem>
+            </Details>
+          </InfoContainer>
+        </TopSection>
+        <BottomSection>
+          <ReviewTitle>리뷰</ReviewTitle>
+          <StarContainer>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <StarIcon
+                key={star}
+                selected={star <= (hoveredRating || rating)}
+                onClick={() => handleRatingClick(star)}
+                onMouseEnter={() => setHoveredRating(star)}
+                onMouseLeave={() => setHoveredRating(0)}
+              >
+                <FaStar />
+              </StarIcon>
+            ))}
+          </StarContainer>
+          {!showReviewForm && <ReviewMessage>별점을 남겨주세요!</ReviewMessage>}
+          <ReviewFormContainer show={showReviewForm ? true : undefined}>
+            {showReviewForm && (
+              <ReviewForm onSubmit={handleReviewSubmit} onCancel={handleReviewCancel} />
+            )}
+          </ReviewFormContainer>
+          <ReviewList reviews={reviews} />
+        </BottomSection>
+      </ModalContent>
+    </Overlay>
+  );
+};
 
 export default DetailPlaceInfoModal;
+
 
 const Overlay = styled.div`
   position: fixed;

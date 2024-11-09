@@ -1,75 +1,80 @@
-import { useEffect, useState } from "react"
+import React, { useState, useEffect } from "react";
 import { BsArrowLeftCircle, BsArrowRightCircle } from "react-icons/bs";
 import styled from "styled-components";
+import BestCardDetailRecommend from "./BestCardDetailRecommend";
 
+const BestCardSlider = ({ items }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [selectedItem, setSelectedItem] = useState(null);  // 선택된 카드 정보를 저장
+    const [showModal, setShowModal] = useState(false);  // 모달을 열고 닫을 상태
 
-
-const BestCardSlider = ({items}) => {
-    const [currentIndex, setCurrentIndex] = useState(0)
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+    const itemToShow = isMobile ? 1 : 5;
 
     // 화면 크기에 따라 isMobile 값을 업데이트
     useEffect(() => {
         const handleResize = () => {
+            const mobileView = window.innerWidth <= 768;
+            if (isMobile !== mobileView) {
+                setIsMobile(mobileView);
 
-            const mobileView = window.innerWidth <= 768
-            if(isMobile !== mobileView) {
-                setIsMobile(mobileView)
-                    
-                    // 화면 크기가 변경될 때 currentIndex 재조정
-                    if(!mobileView) {
-                        // 데스크탑 모드로 전환될 때 첫번째 카드로 재조정
-                        setCurrentIndex(Math.floor(currentIndex / 5) * 5)
-                    }
+                // 화면 크기가 변경될 때 currentIndex 재조정
+                if (!mobileView) {
+                    setCurrentIndex(Math.floor(currentIndex / 5) * 5);
+                }
             }
-        }
-        window.addEventListener("resize", handleResize)
-        return () => window.removeEventListener("resize", handleResize)
-    }, [isMobile, currentIndex])
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, [isMobile, currentIndex]);
 
-    const itemToShow = isMobile ? 1 : 5
+    // 카드 클릭 시 모달을 띄우고 상세 정보를 전달
+    const handleCardClick = (item) => {
+        setSelectedItem(item);
+        setShowModal(true);  // 모달 열기
+    };
 
     const handleNext = () => {
-        // currentIndex가 아이템의 개수 - 5에 도달하면 0으로 돌아갑니다
         setCurrentIndex((prevIndex) => (prevIndex + itemToShow) % items.length);
-
-
     };
 
     const handlePrev = () => {
-        // currentIndex가 0보다 작아지면 마지막 5개로 돌아갑니다
-        setCurrentIndex((prevIndex) => 
-
-            prevIndex === 0 ? items.length - itemToShow : prevIndex - itemToShow
-        );
+        setCurrentIndex((prevIndex) => (prevIndex === 0 ? items.length - itemToShow : prevIndex - itemToShow));
     };
 
     return (
-
-        <SliderWrapper>
-            <ArrowButton onClick={handlePrev}>
-                <BsArrowLeftCircle size={30} />
-            </ArrowButton>
-            <SliderContainer>
-
-                <CardWrapper $currentIndex={currentIndex} $itemToShow={itemToShow}>
-
-                    {items.map((item, index) => (
-                        <Card key={index}>
-                            <img src={item.imageUrl} alt={item.name} />
-                            <CardLabel>{item.name}</CardLabel>
-                        </Card>
-                    ))}
-                </CardWrapper>
-            </SliderContainer>
-            <ArrowButton onClick={handleNext}>
+        <div>
+            <SliderWrapper>
+                <ArrowButton onClick={handlePrev}>
+                    <BsArrowLeftCircle size={30} />
+                </ArrowButton>
+                <SliderContainer>
+                    <CardWrapper $currentIndex={currentIndex} $itemToShow={itemToShow}>
+                        {items.map((item, index) => (
+                            <Card key={index} onClick={() => handleCardClick(item)}>
+                                <img src={item.imageUrl} alt={item.name} />
+                                <CardLabel>{item.name}</CardLabel>
+                            </Card>
+                        ))}
+                    </CardWrapper>
+                </SliderContainer>
+                <ArrowButton onClick={handleNext}>
                     <BsArrowRightCircle size={30} />
                 </ArrowButton>
-        </SliderWrapper>
-    )
-}
+            </SliderWrapper>
 
-export default BestCardSlider
+            {/* 모달이 열리면 화면에 띄우기 */}
+            {showModal && selectedItem && (
+                <BestCardDetailRecommend
+                    item={selectedItem}  // 선택된 아이템 정보 전달
+                    onClose={() => setShowModal(false)}  // 모달 닫기
+                />
+            )}
+        </div>
+    );
+};
+
+export default BestCardSlider;
 
 const SliderWrapper = styled.div`
     display: flex;
