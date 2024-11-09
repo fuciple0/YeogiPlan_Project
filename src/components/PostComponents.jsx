@@ -3,39 +3,59 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FaCommentDots } from "react-icons/fa";
 import CommentComponents from './CommentComponents';
+import defaultProfileImage from '../assets/user_profile.png'; 
 
-const PostComponents = ({ posts, activePostIndex, onCommentIconClick, commentText, setCommentText, onCommentSubmit }) => (
+
+const PostComponents = ({ posts =[], activePostIndex, onCommentIconClick, commentText, setCommentText, onCommentSubmit }) => (
   <PostsContainer>
-    {posts.map((post, index) => (
-      <PostWrapper key={index}>
-        <PostTitle>{post.title}</PostTitle>
-        <PostContent>{post.content}</PostContent>
-        <TagContainer>
-          {post.tags.map((tag, idx) => (
-            <TagChipButton key={idx}>{tag}</TagChipButton>
-          ))}
-        </TagContainer>
-        <PostDateTime>{getRelativeTime(post.createdAt)}</PostDateTime>
+    {posts && posts.length > 0 ? (
+      posts.map((post, index) => (
+        <PostWrapper key={post.talk_id}>
+          
+          {/* 작성자 정보 */}
+          <AuthorContainer>
+            <ProfileImage src={post.profile_photo || defaultProfileImage} alt="프로필 이미지" />
+            <Nickname>{post.nickname || "익명"}</Nickname>
+          </AuthorContainer>
 
-        <DividerContainer>
-          <Divider />
-          <CommentIconContainer onClick={() => onCommentIconClick(index)}>
-            <CommentIcon />
-            <CommentCount>{post.comments.length}</CommentCount>
-          </CommentIconContainer>
-        </DividerContainer>
+          {/* 게시글 제목과 내용 */}
 
-        {/* 댓글 입력 및 목록 표시 */}
-        {activePostIndex === index && (
-          <CommentComponents
-            comments={post.comments}
-            commentText={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            onSubmit={onCommentSubmit}
-          />
-        )}
-      </PostWrapper>
-    ))}
+          <PostTitle>{post.talk_title}</PostTitle>
+          <PostContent>{post.talk_message}</PostContent>
+
+          {/* 태그 표시 */}
+          <TagContainer>
+            {post.tags && post.tags.map((tag, idx) => (
+              <TagChipButton key={tag + idx}>{tag}</TagChipButton>
+            ))}
+          </TagContainer>
+
+          {/* 게시 시간 */}
+          <PostDateTime>{getRelativeTime(post.createdAt)}</PostDateTime>
+
+          {/* 댓글 아이콘 및 댓글 수 */}
+          <DividerContainer>
+            <Divider />
+            <CommentIconContainer onClick={() => onCommentIconClick(index)}>
+              <CommentIcon />
+              <CommentCount>{post.comments?.length || 0}</CommentCount>
+            </CommentIconContainer>
+          </DividerContainer>
+
+          {/* 댓글 입력 및 목록 표시 */}
+          {activePostIndex === index && (
+            <CommentComponents
+              comments={post.comments || []}
+              commentText={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onSubmit={onCommentSubmit}
+            />
+          )}
+        </PostWrapper>
+      ))
+    ) : (
+      <p>게시글이 없습니다.</p>
+    )}
   </PostsContainer>
 );
 
@@ -130,3 +150,23 @@ const TagChipButton = styled.button`
   border: 1px solid #d3d3d3;
   background-color:white;
   `;
+
+
+const AuthorContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+`;
+
+const ProfileImage = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+`;
+
+const Nickname = styled.span`
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+`;
