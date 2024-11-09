@@ -184,6 +184,7 @@ const Place = () => {
                         userId: data.userId,
                         email: formData.email,
                         nickname: formData.nickname,
+                        profile_photo: data.profile_photo,
                         role: 'member'
                     },
                     token: data.token,

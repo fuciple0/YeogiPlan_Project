@@ -34,7 +34,6 @@ const Talk = () => {
 
 
 
-
   return (
     <>
       <ImageContainer imageUrl={tiwanImage} onClick={openLocationModal} />
