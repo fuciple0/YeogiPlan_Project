@@ -1,132 +1,219 @@
-// src/components/PostComponents.jsx
-import React, { useState } from 'react';
+// PostComponents.jsx
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { FaCommentDots } from "react-icons/fa";
+import { FaRegCommentDots } from "react-icons/fa";
+import { useSelector } from 'react-redux';
 import CommentComponents from './CommentComponents';
+import defaultProfileImage from '../assets/user_profile.png'; 
 
-const PostComponents = ({ posts, activePostIndex, onCommentIconClick, commentText, setCommentText, onCommentSubmit }) => (
-  <PostsContainer>
-    {posts.map((post, index) => (
-      <PostWrapper key={index}>
-        <PostTitle>{post.title}</PostTitle>
-        <PostContent>{post.content}</PostContent>
-        <TagContainer>
-          {post.tags.map((tag, idx) => (
-            <TagChipButton key={idx}>{tag}</TagChipButton>
-          ))}
-        </TagContainer>
-        <PostDateTime>{getRelativeTime(post.createdAt)}</PostDateTime>
 
-        <DividerContainer>
-          <Divider />
-          <CommentIconContainer onClick={() => onCommentIconClick(index)}>
-            <CommentIcon />
-            <CommentCount>{post.comments.length}</CommentCount>
-          </CommentIconContainer>
-        </DividerContainer>
 
-        {/* 댓글 입력 및 목록 표시 */}
-        {activePostIndex === index && (
-          <CommentComponents
-            comments={post.comments}
-            commentText={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            onSubmit={onCommentSubmit}
-          />
-        )}
-      </PostWrapper>
-    ))}
-  </PostsContainer>
-);
 
-// 상대 시간 계산 함수
-const getRelativeTime = (timestamp) => {
-  const now = new Date();
-  const diff = Math.floor((now - timestamp) / 1000); // 초 단위 차이 계산
+
+const PostComponents = ({ posts = [] }) => {
+  const [activePost, setActivePost] = useState(null);
+  const [commentsData, setCommentsData] = useState({});
+  const userInfo = useSelector((state) => state.user.userInfo);
+
+
+  const ProfileImage = ({ profilePhoto }) => {
+    // profilePhoto가 null이나 undefined가 아니면 replace를 사용하여 경로 수정
+    const imageURL = profilePhoto 
+      ? `http://192.168.50.34:3001/${profilePhoto.replace(/\\/g, "/")}` 
+      : defaultProfileImage;
   
-  if (diff < 60) return `${diff}초 전`;
-  const minutes = Math.floor(diff / 60);
-  if (minutes < 60) return `${minutes}분 전`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}시간 전`;
-  const days = Math.floor(hours / 24);
-  return `${days}일 전`;
+    return (
+      <img 
+        src={imageURL} 
+        alt="프로필 이미지" 
+        style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 10 }} 
+      />
+    );
+  };
+
+
+  // 댓글 아이콘 클릭 시 해당 게시글의 댓글 입력창 및 목록 표시
+  const handleCommentIconClick = (postId) => {
+    setActivePost((prev) => (prev === postId ? null : postId)); // 이미 열려 있으면 닫기
+    if (activePost !== postId) fetchComments(postId); // 댓글 목록 가져오기
+  };
+
+
+  const formatDate = (isoString) => {
+    const date = new Date(isoString);
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  };
+
+  
+  // 댓글 작성 함수
+  const handleCommentSubmit = async (postId, commentText) => {
+    if (!commentText.trim()) return;
+
+    try {
+      const response = await fetch(`http://192.168.50.34:3001/api/talk_board/${postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userInfo.userId, 
+          contents: commentText,
+          parent_id: null,
+        }),
+      });
+
+      if (response.ok) {
+        console.log("댓글 작성 성공");
+        fetchComments(postId); // 댓글 작성 후 최신 댓글 목록 가져오기
+      } else {
+        console.error("댓글 작성에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+
+  // 특정 게시글의 댓글 목록 가져오기
+  const fetchComments = async (postId) => {
+    try {
+      const response = await fetch(`http://192.168.50.34:3001/api/talk_board/${postId}/comments`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        setCommentsData((prevData) => ({
+          ...prevData,
+          [postId]: responseData.data || [],
+        }));
+      } else {
+        console.error("댓글 목록을 가져오는 데 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  return (
+    <PostsContainer>
+      {posts && posts.length > 0 ? (
+        posts.map((post) => (
+          <PostWrapper key={post.talk_id}>
+            {/* 작성자 정보 */}
+            <AuthorContainer>
+              
+              <ProfileImage profilePhoto={post.profile_photo} />
+              <Nickname>{post.nickname || "익명"}</Nickname>
+            </AuthorContainer>
+
+            {/* 게시글 제목과 내용 */}
+            <PostTitle>{post.talk_title}</PostTitle>
+            <PostContent>{post.talk_message}</PostContent>
+            
+
+            {/* 게시글 작성 날짜 및 시간 */}
+            <PostDateTime>{formatDate(post.talk_at)}</PostDateTime> {/* 날짜 및 시간 표시 */}
+
+            {/* 댓글 아이콘 및 댓글 수 */}
+            <DividerContainer>
+              <Divider />
+              <CommentIconContainer onClick={() => handleCommentIconClick(post.talk_id)}>
+                <FaRegCommentDots />
+                <CommentCount>{commentsData[post.talk_id]?.length || 0}</CommentCount>
+              </CommentIconContainer>
+            </DividerContainer>
+
+            {/* 댓글 입력 및 목록 표시 */}
+            {activePost === post.talk_id && (
+              <CommentComponents
+                comments={commentsData[post.talk_id] || []}
+                userInfo={userInfo} // userInfo를 전달
+                onCommentSubmit={(commentText) => handleCommentSubmit(post.talk_id, commentText)}
+              />
+            )}
+          </PostWrapper>
+        ))
+      ) : (
+        <p>게시글이 없습니다.</p>
+      )}
+    </PostsContainer>
+  );
 };
+
 export default PostComponents;
 
-
-
-
+// 스타일 컴포넌트들
 const PostsContainer = styled.div`
-  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
 `;
 
 const PostWrapper = styled.div`
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 8px;
-  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 10px;
 `;
 
-const PostTitle = styled.h3`
-  margin: 0;
-  font-size: 18px;
-  color: #333;
-`;
-
-const PostContent = styled.p`
-  color: #666;
-  font-size: 16px;
-`;
-
-const DividerContainer = styled.div`
-  position: relative;
-  margin: 20px 0;
-`;
-
-const Divider = styled.div`
-  height: 1px;
-  background-color: #d3d3d3;
-`;
-
-const CommentIconContainer = styled.div`
-  position: absolute;
-  top: -25px;
-  right: 30px;
+const AuthorContainer = styled.div`
   display: flex;
   align-items: center;
 `;
 
-const CommentIcon = styled(FaCommentDots)`
-  font-size: 18px;
-  color: #d3d3d3;
+const ProfileImage = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+`;
+
+const Nickname = styled.span`
+  font-weight: bold;
+`;
+
+const PostTitle = styled.h3`
+ margin-left: 20px;
+  /* margin: 10px 0; */
+`;
+
+const PostContent = styled.p`
+ margin-left: 20px;
+  /* margin: 10px 0; */
+`;
+
+const PostDateTime = styled.span`
+  display: block;
+  font-size: 12px;
+  color: #777;
+  margin-top: 5px;
+`;
+
+
+const DividerContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+`;
+
+const Divider = styled.hr`
+  flex: 1;
+  border: none;
+  border-top: 1px solid #eee;
+`;
+
+const CommentIconContainer = styled.div`
+  display: flex;
+  align-items: center;
   cursor: pointer;
+  margin-left: 8px;
 `;
 
 const CommentCount = styled.span`
   margin-left: 5px;
-  font-size: 14px;
-  color: #d3d3d3;
+  font-size: 0.9em;
+  color: #666;
 `;
-
-const TagContainer = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-`;
-
-// 스타일 정의
-const PostDateTime = styled.div`
-  font-size: 12px;
-  color: #888;
-  margin-top: 20px;
-`;
-
-const TagChipButton = styled.button`
-  display: flex;
-  padding: 8px 16px;
-  border-radius: 16px;
-  font-size: 14px;
-  border: 1px solid #d3d3d3;
-  background-color:white;
-  `;
