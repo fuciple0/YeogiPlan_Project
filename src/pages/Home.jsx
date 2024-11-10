@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import DestinationCard from '../components/DestinationCard';
-import ReviewCard from '../components/RecommendPlaceCard';
 import SearchBar from '../components/SearchBar';
 import MainCarousel from '../components/MainCarousel';
 import SearchModal from '../components/SearchModal';
 import BestCardSlider from '../components/BestCardSlider';
+import RecommendPlaceCard from '../components/RecommendPlaceCard';
+import DetailPlaceInfoModal from '../components/DetailPlaceInfoModal';
+import Planning from './Planning';
+import { addTripData } from '../store/placeSlice'; // Redux 액션 임포트
 
 // 이미지 import
 import jejuImage from '../assets/home_img/jeju.png';
@@ -18,14 +21,10 @@ import danangImage from '../assets/home_img/danang.png';
 import tokyoImage from '../assets/home_img/tokyo.png';
 import parisImage from '../assets/home_img/paris.png';
 import spainImage from '../assets/home_img/spain.png';
-import incheonAirport from '../assets/home_img/airport.jpg'
-import hanlasan from '../assets/home_img/hanla.jpg'
-import waterfall from '../assets/home_img/waterfall.jpg'
-import chumsungdae from '../assets/home_img/tower.jpg'
-import RecommendPlaceCard from '../components/RecommendPlaceCard';
-import DetailPlaceInfoModal from '../components/DetailPlaceInfoModal';
-import SearchModalgoogle from '../components/SearchModalwithGoogleAPI'; //구글api 키워드 검색
-
+import incheonAirport from '../assets/home_img/airport.jpg';
+import hanlasan from '../assets/home_img/hanla.jpg';
+import waterfall from '../assets/home_img/waterfall.jpg';
+import chumsungdae from '../assets/home_img/tower.jpg';
 
 const popularDestinations = [
   { name: '제주도', imageUrl: jejuImage },
@@ -45,32 +44,39 @@ const howAboutThis = [
   { name: '인천공항', imageUrl: incheonAirport, location: '인천광역시 중구' },
   { name: '한라산', imageUrl: hanlasan, location: '제주 서귀포시' },
   { name: '첨성대', imageUrl: chumsungdae, location: '경북 경주시' },
-  { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시' },
 ];
 
 const Home = () => {
+  const dispatch = useDispatch();
+  const tripData = useSelector((state) => state.places.tripData);
+  const selectedPlaces = useSelector((state) => state.places.selectedPlaces);
 
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
-  const [selectedPlace, setSelectedPlace] = useState(null)
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState(null);
 
   const openSearchModal = () => {
-    setIsSearchModalOpen(true)
-  }
+    setIsSearchModalOpen(true);
+  };
 
   const closeSearchModal = () => {
-    setIsSearchModalOpen(false)
-  }
+    setIsSearchModalOpen(false);
+  };
+
+  const handleSearchModalConfirm = (data) => {
+    dispatch(addTripData({ tripData: data.tripData, places: data.places }));
+    closeSearchModal();
+  };
 
   const openDetailModal = (place) => {
-    setSelectedPlace(place)
-    setIsDetailModalOpen(true)
-  }
+    setSelectedPlace(place);
+    setIsDetailModalOpen(true);
+  };
 
   const closeDetailModal = () => {
-    setIsDetailModalOpen(false)
-    setSelectedPlace(null)
-  }
+    setIsDetailModalOpen(false);
+    setSelectedPlace(null);
+  };
 
   return (
     <Container>
@@ -80,7 +86,15 @@ const Home = () => {
         <MainCarousel images={popularDestinations} />
       </Section>
 
-      <SearchModalgoogle isOpen={isSearchModalOpen} onClose={closeSearchModal} />
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={closeSearchModal}
+        onConfirm={handleSearchModalConfirm}
+      />
+
+      {tripData && selectedPlaces.length > 0 && (
+        <Planning tripData={tripData} initialPlaces={selectedPlaces} /> // Redux에서 데이터 전달
+      )}
 
       <Section>
         <Title>지금 뜨고 있는 여행지 🔥</Title>
@@ -97,7 +111,8 @@ const Home = () => {
               imageUrl={place.imageUrl}
               name={place.name}
               location={place.location}
-              onImageClick={() => openDetailModal(place)} />
+              onImageClick={() => openDetailModal(place)}
+            />
           ))}
         </RecommendGrid>
       </Section>
@@ -109,7 +124,6 @@ const Home = () => {
           place={selectedPlace}
         />
       )}
-
     </Container>
   );
 };
@@ -121,26 +135,26 @@ const Container = styled.div`
   margin: 0 auto;
   padding: 20px;
   background-color: white;
-`
+`;
 
 const Section = styled.section`
   margin-bottom: 40px;
-`
+`;
 
 const Slogan = styled.h1`
-  font-family: 'Paperlogy-8ExtraBold','Spoqa Han Sans', sans-serif;
+  font-family: 'Paperlogy-8ExtraBold', 'Spoqa Han Sans', sans-serif;
   font-size: 32px;
-  color: #507DBC;
-`
+  color: #507dbc;
+`;
 
 const Title = styled.h2`
   font-size: 24px;
   font-weight: bold;
-`
+`;
 
 const Subtitle = styled.h3`
   font-size: 18px;
-`
+`;
 
 const RecommendGrid = styled.div`
   display: flex;
@@ -148,4 +162,5 @@ const RecommendGrid = styled.div`
   gap: 20px;
   flex-wrap: wrap;
   margin-top: 20px;
-`
+`;
+
