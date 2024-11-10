@@ -25,7 +25,7 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
 
 
     const handleConfirm = () => {
-    onConfirm(title, content,selectedTags); // 상위 컴포넌트에 제목과 내용을 전달
+    onConfirm(title, content); // 상위 컴포넌트에 제목과 내용을 전달
     setTitle(''); // 입력값 초기화
     setContent('');
     setSelectedTags([]);
@@ -66,6 +66,7 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
           <p>유저번호: {userInfo?.userId || "로그인 정보 없음"}</p>
           <p>이메일: {userInfo?.email || "로그인 정보 없음"}</p>
           <p>닉네임: {userInfo?.nickname || "로그인 정보 없음"}</p>
+          <p>이미지: {userInfo?.profile_photo || "로그인 정보 없음"}</p>
           <p>토큰: {token || "토큰 없음"}</p>
         </UserInfoContainer>
 
