@@ -169,7 +169,7 @@ const Place = () => {
         formDataToSend.append('profile_photo', formData.profile_photo);
 
         try {
-            const response = await fetch('http://192.168.50.34:3001/api/users/register', {
+            const response = await fetch('http://15.164.142.129:3001/api/users/register', {
                 method: 'POST',
                 body: formDataToSend,
             });

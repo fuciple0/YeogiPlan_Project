@@ -9,9 +9,9 @@ const ReviewList = ({ reviews }) => {
             {reviews.map((review, index) => (
                 <ReviewItem key={index}>
                     <ProfileSection>
-                        <ProfileImage src={review.profileImage} alt="프로필 이미지" />
+                        <ProfileImage src={review.profileImage || defaultProfileImage } alt="프로필 이미지" />
                         <NickAndRating>
-                            <Nickname>{review.nickname}</Nickname>
+                            <Nickname>{review.userInfo?.nickname}</Nickname>
                             <Rating>
                             {[...Array(5)].map((_, i) => (
                                 <FaStar key={i} color={i < review.rating ? '#FFC978' : '#ddd'} />
@@ -19,7 +19,7 @@ const ReviewList = ({ reviews }) => {
                             </Rating>
                         </NickAndRating>
                     </ProfileSection>
-                    <ReviewText>{review.text}</ReviewText>
+                    <ReviewText>{review.comment}</ReviewText>
                     {review.images.length > 0 && (
                         <ImageContainer>
                             {review.images.map((src, i) => (
