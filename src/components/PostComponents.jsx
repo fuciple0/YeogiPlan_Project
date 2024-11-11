@@ -19,7 +19,7 @@ const PostComponents = ({ posts = [] }) => {
   const ProfileImage = ({ profilePhoto }) => {
     // profilePhoto가 null이나 undefined가 아니면 replace를 사용하여 경로 수정
     const imageURL = profilePhoto 
-      ? `http://192.168.50.34:3001/${profilePhoto.replace(/\\/g, "/")}` 
+      ? `http://15.164.142.129:3001/${profilePhoto.replace(/\\/g, "/")}` 
       : defaultProfileImage;
   
     return (
@@ -50,7 +50,7 @@ const PostComponents = ({ posts = [] }) => {
     if (!commentText.trim()) return;
 
     try {
-      const response = await fetch(`http://192.168.50.34:3001/api/talk_board/${postId}/comments`, {
+      const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ const PostComponents = ({ posts = [] }) => {
   // 특정 게시글의 댓글 목록 가져오기
   const fetchComments = async (postId) => {
     try {
-      const response = await fetch(`http://192.168.50.34:3001/api/talk_board/${postId}/comments`, {
+      const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -1,28 +1,39 @@
 // src/pages/Mypage.jsx
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom'; // useNavigate 가져오기
 import styled from 'styled-components';
+import { logoutUser } from '../store/userSlice';
 import default_profile from '../assets/user_profile.png';
 import ProfileEditModal from '../components/ProfileEditModal';
 
 const Mypage = () => {
-
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const dispatch = useDispatch();
+  const navigate = useNavigate(); // useNavigate 훅 초기화
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [profile, setProfile] = useState({
     image: default_profile,
-    nickname: "익명",
-  })
+    nickname: '익명',
+  });
 
   const [activeTab, setActiveTab] = useState('travelLog'); // 기본 탭 상태 설정
 
-  const openModal = () => setIsModalOpen(true)
-  const closeModal = () => setIsModalOpen(false)
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
-  const saveProfile = ({profileImage, nickname}) => {
+  const saveProfile = ({ profileImage, nickname }) => {
     setProfile({
       image: profileImage,
-      nickname
-    })
-  }
+      nickname,
+    });
+  };
+
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    navigate('/'); // 홈 경로로 이동
+  };
+
+
 
   return (
     <MypageContainer>
@@ -30,6 +41,7 @@ const Mypage = () => {
         <ProfileImage src={profile.image} alt="프로필 이미지" />
         <Nickname>{profile.nickname}</Nickname>
         <EditProfileButton onClick={openModal}>프로필 수정</EditProfileButton>
+        <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton> {/* 로그아웃 버튼 추가 */}
       </ProfileSection>
 
       <Tabs>
@@ -54,25 +66,26 @@ const Mypage = () => {
         onClose={closeModal} 
         onSave={saveProfile} 
         initialProfileImage={profile.image}
-        initialNickname={profile.nickname} />
-
+        initialNickname={profile.nickname} 
+      />
     </MypageContainer>
   );
 };
 
 export default Mypage;
 
+// 스타일 정의
 const MypageContainer = styled.div`
   padding: 20px;
   width: 80%;
   margin: 0 auto;
-`
+`;
 
 const ProfileSection = styled.div`
   text-align: center;
   position: relative;
   margin-bottom: 20px;
-`
+`;
 
 const ProfileImage = styled.img`
   width: 120px;
@@ -80,13 +93,13 @@ const ProfileImage = styled.img`
   border-radius: 50%;
   object-fit: cover;
   margin-top: 64px;
-`
+`;
 
 const Nickname = styled.p`
   font-size: 18px;
   font-weight: bold;
   color: #333;
-`
+`;
 
 const EditProfileButton = styled.button`
   position: absolute;
@@ -106,14 +119,32 @@ const EditProfileButton = styled.button`
     color: white;
     font-weight: bold;
   }
-`
+`;
+
+const LogoutButton = styled.button`
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 14px;
+  color: #507DBC;
+  border: 1px solid #507DBC;
+  border-radius: 20px;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #507DBC;
+    color: white;
+    font-weight: bold;
+  }
+`;
 
 const Tabs = styled.div`
   display: flex;
   justify-content: center;
   margin-top: 32px;
   border-top: 1px solid #f0f0f0;
-`
+`;
 
 const Tab = styled.button`
   flex: 1;
@@ -126,7 +157,6 @@ const Tab = styled.button`
   font-weight: ${({ isActive }) => (isActive ? 'bold' : 'normal')};
   color: ${({ isActive }) => (isActive ? '#333' : '#8d8d8d')};
 
-  /* 활성 탭이 아닌 경우에만 호버 효과 적용 */
   ${({ isActive }) =>
     !isActive &&
     `
@@ -134,20 +164,20 @@ const Tab = styled.button`
         background-color: #e0e0e0;
       }
     `}
-`
+`;
 
 const TabLabel = styled.span`
   margin-right: 5px;
-`
+`;
 
 const Content = styled.div`
   margin-top: 20px;
-`
+`;
 
 const TravelLogContent = styled.div`
   /* 여행 기록 콘텐츠 스타일 */
-`
+`;
 
 const ReviewContent = styled.div`
   /* 리뷰 관리 콘텐츠 스타일 */
-`
+`;
