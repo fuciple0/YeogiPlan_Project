@@ -394,6 +394,7 @@ const MoveButton = styled.button`
   cursor: pointer;
 `;
 
+
 const DeleteButton = styled.button`
   background-color: red;
   color: white;
@@ -403,4 +404,3 @@ const DeleteButton = styled.button`
   cursor: pointer;
   margin-left: 10px;
 `;
-
