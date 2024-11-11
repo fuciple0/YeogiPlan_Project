@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Dialog, DialogActions, Button, TextField } from '@mui/material';
 import dayjs from 'dayjs';
@@ -7,14 +7,23 @@ import { addTripData } from '../store/placeSlice'; // Redux 액션
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
-const DateSelectModal = ({ open, onClose, onConfirm, selectedPlaces }) => {
+const DateSelectModal = ({ open, onClose, onConfirm, selectedPlaces, defaultTripData }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [selectedDates, setSelectedDates] = useState([]);
-  const [tripTitle, setTripTitle] = useState('');
-  const [destination, setDestination] = useState('');
   const [currentMonth, setCurrentMonth] = useState(dayjs().startOf('month'));
+  const [tripTitle, setTripTitle] = useState(defaultTripData?.tripTitle || ''); // 기본 제목 설정
+  const [destination, setDestination] = useState(defaultTripData?.destination || ''); // 기본 목적지 설정
+
   const dispatch = useDispatch();
+
+  // defaultTripData가 변경될 때 초기값 설정
+  useEffect(() => {
+    if (defaultTripData) {
+      setTripTitle(defaultTripData.tripTitle || '')
+      setDestination(defaultTripData.destination || '')
+    }
+  }, [defaultTripData])
 
   const handleDateChange = (date) => {
     const maxEndDate = dayjs(startDate).add(10, 'day');
@@ -51,26 +60,58 @@ const DateSelectModal = ({ open, onClose, onConfirm, selectedPlaces }) => {
     return dates;
   };
 
-  const handleConfirm = () => {
-    // 날짜 형식을 "yyyy-mm-dd"로 변환하여 저장
+  const handleConfirm = async () => {
+    // 날짜 형식 변환
     const formattedStartDate = startDate ? dayjs(startDate).format('YYYY-MM-DD') : null;
     const formattedEndDate = endDate ? dayjs(endDate).format('YYYY-MM-DD') : null;
     const createdAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
-
+  
     const tripData = {
       tripTitle,
-      destination,
+      destination: "목적지를 입력해주세요",
       startDate: formattedStartDate,
       endDate: formattedEndDate,
       created_at: createdAt,
-      places: selectedPlaces,
     };
-    
-    dispatch(addTripData(tripData)); // Redux에 데이터 저장
-    onConfirm(tripData); // 부모 컴포넌트로 데이터 전달
+  
+    try {
+      // tripData를 데이터베이스에 저장하고 trip_plan_id를 받아옴
+      const response = await fetch('http://15.164.142.129:3001/api/trip_plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: 1, // 실제 user_id 값으로 교체
+          trip_plan_title: tripData.tripTitle,
+          start_date: tripData.startDate,
+          end_date: tripData.endDate,
+          destination: tripData.destination,
+          route_shared: "private",
+        }),
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok && result.success) {
+        const tripPlanId = result.data.trip_plan_id;
+        const tripDataWithId = { ...tripData, trip_plan_id: tripPlanId, route_shared: result.data.route_shared};
+  
+        // Redux에 저장
+        dispatch(addTripData({ tripData: tripDataWithId, places: selectedPlaces }));
+  
+        // SearchModal의 handleDateSelectConfirm으로 전달
+        onConfirm(tripDataWithId);
+      } else {
+        console.error("여행 데이터 저장 실패:", result.message);
+      }
+    } catch (error) {
+      console.error("장소 추가 중 오류 발생:", error);
+    }
+  
     onClose();
   };
-
+  
   const handlePrevMonth = () => {
     setCurrentMonth(currentMonth.subtract(1, 'month'));
   };
@@ -81,23 +122,8 @@ const DateSelectModal = ({ open, onClose, onConfirm, selectedPlaces }) => {
 
   return (
     <StyledDialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>여행 정보를 입력하고 날짜를 선택하세요</DialogTitle>
-      <InputContainer>
-        <StyledTextField
-          label="여행 제목"
-          variant="outlined"
-          fullWidth
-          value={tripTitle}
-          onChange={(e) => setTripTitle(e.target.value)}
-        />
-        <StyledTextField
-          label="목적지"
-          variant="outlined"
-          fullWidth
-          value={destination}
-          onChange={(e) => setDestination(e.target.value)}
-        />
-      </InputContainer>
+      <DialogTitle>여행 날짜를 선택하세요</DialogTitle>
+      <InfoText>여행 기간은 최대 10일까지 선택할 수 있습니다.</InfoText>
       <CalendarContainer>
         <IconButton onClick={handlePrevMonth}>이전</IconButton>
         <Calendars>
@@ -149,14 +175,12 @@ const DialogTitle = styled.h2`
   margin: 0;
 `;
 
-const InputContainer = styled.div`
-  display: flex;
-  gap: 16px;
+const InfoText = styled.p`
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 8px;
   margin-bottom: 20px;
-`;
-
-const StyledTextField = styled(TextField)`
-  flex: 1;
 `;
 
 const CalendarContainer = styled.div`

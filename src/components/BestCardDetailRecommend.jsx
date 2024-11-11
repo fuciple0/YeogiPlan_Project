@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import RecommendPlaceCard from './RecommendPlaceCard';
-import RecommendList from './RecommendList'; // RecomendList 컴포넌트를 가져옴
-
-
-
-//베스트 도시 수정하려면 더미데이터로 가세요
-//이름과 사진은 더미데이터로 불러옵니다.
-
+import RecommendList from './RecommendList';
+import { Skeleton } from '@mui/material';
+import DateSelectModal from './DateSelectModal';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addTripData } from '../store/placeSlice';
 
 const BestCardDetailRecommend = ({ item, onClose }) => {
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [places, setPlaces] = useState([]);
+  const [selectedPlaces, setSelectedPlaces] = useState([]); // 선택된 장소 목록 상태 추가
+  const [isDateSelectOpen, setIsDateSelectOpen] = useState(false); // 날짜 선택 모달 상태
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchDescription = async () => {
       try {
-        // 1. 키워드 검색으로 장소 정보를 가져옵니다
         const keywordResponse = await fetch(`http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${item.name}`);
         const keywordData = await keywordResponse.json();
 
@@ -25,14 +27,10 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
           const place = keywordData.places[0];
           setDescription(place.description || '정보를 가져올 수 없습니다.');
 
-          // 2. 동일한 장소명으로 주변 검색을 수행합니다
-          const nearbyResponse = await fetch(
-            `http://43.201.36.203:3001/googleApi/nearbySearch?searchTerm=${item.name}`
-          );
+          const nearbyResponse = await fetch(`http://43.201.36.203:3001/googleApi/nearbySearch?searchTerm=${item.name}`);
           const data = await nearbyResponse.json();
 
           if (data && data.nearbyPlaces && Array.isArray(data.nearbyPlaces)) {
-            // 현재 장소를 제외한 다른 장소들만 필터링
             const filteredPlaces = data.nearbyPlaces.filter(p => p.name !== item.name);
             setPlaces(filteredPlaces);
           }
@@ -49,31 +47,125 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
     fetchDescription();
   }, [item]);
 
+  // 일정 추가 버튼 클릭 시 일정 날짜 선택 모달을 여는 함수
+  const handleAddSchedule = () => {
+    setIsDateSelectOpen(true);
+  };
+
+  // 일정 날짜 선택 모달 닫기
+  const handleDateSelectClose = () => {
+    setIsDateSelectOpen(false);
+  };
+
+  // DateSelectModal에서 날짜 선택 후 확인 버튼 클릭 시 처리 함수
+  const handleDateSelectConfirm = async (tripDataWithId) => {
+    console.log("Redux에 저장할 tripData:", tripDataWithId);
+    console.log("Redux에 저장할 selectedPlaces:", selectedPlaces);
+
+    // Redux에 tripData와 선택된 장소들 저장
+    dispatch(addTripData({
+      tripData: tripDataWithId,
+      places: selectedPlaces,
+    }));
+
+    const tripPlanId = tripDataWithId.trip_plan_id
+
+    try {
+      await Promise.all(
+        selectedPlaces.map(async (place, index) => {
+          const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripPlanId}/detail`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user_id: 1,
+              trip_day: 1,
+              place_name: place.name,
+              place_name_x: place.location.lat,
+              place_name_y: place.location.lng,
+              place_id: place.place_id,
+              memo: null,
+              memo_type: "love",
+              order_no: index + 1,
+              review_id: null,
+            }),
+          });
+
+          if (response.ok) {
+            console.log("장소 저장 성공:", place.name);
+          } else {
+            console.error("장소 저장 실패:", response.statusText);
+          }
+        })
+      );
+
+    console.log("모든 장소가 성공적으로 추가되었습니다.");
+    navigate('/planning');
+    } catch (error) {
+      console.error("장소 추가 중 오류 발생: ", error)
+    }
+      
+    setIsDateSelectOpen(false)
+    onClose()
+  }
+
   return (
+    <>
     <ModalOverlay onClick={onClose}>
       <ModalContent onClick={(e) => e.stopPropagation()}>
         <BestCard>
           <Image src={item.imageUrl} alt={item.name} />
           <Title>{item.name}</Title>
-          <Description>{description}</Description>
+          <DescriptionContainer>
+            <Description>{description}</Description>
+          </DescriptionContainer>
         </BestCard>
-        <RecommendTitle>추천장소</RecommendTitle>
-        <div>다른 컴포넌트 붙일예정</div>
+        <RecommendTitle>추천 장소</RecommendTitle>
         {isLoading ? (
-          <LoadingText>추천 장소를 불러오는 중...</LoadingText>
+          <SkeletonList>
+          {[...Array(2)].map((_, index) => (
+              <SkeletonItem key={index}>
+              <SkeletonImage>
+                <Skeleton width="100%" height="100%" />
+              </SkeletonImage>
+              <SkeletonDetails>
+                <Skeleton width="50%" height="20px" /> {/* 장소 이름 */}
+                <Skeleton width="10%" height="20px" /> {/* 별점 */}
+                <Skeleton width="60%" height="20px" /> {/* 주소 */}
+              </SkeletonDetails>
+            </SkeletonItem>
+          ))}
+        </SkeletonList>
         ) : (
-          <RecommendList places={places} />
+          <RecommendListContainer>
+            <RecommendList
+              places={places}
+              onSelectPlace={(updatedSelection) => setSelectedPlaces(updatedSelection)} // 장소 선택 시 업데이트 함수 전달
+              selectedItems={selectedPlaces} // 선택된 장소 전달
+            />
+          </RecommendListContainer>
         )}
+        <AddScheduleButton onClick={handleAddSchedule}>일정 생성하러 가기</AddScheduleButton>
       </ModalContent>
     </ModalOverlay>
+
+      {/* DateSelectModal - 일정 날짜 선택 모달 */}
+      {isDateSelectOpen && (
+        <DateSelectModal
+          open={isDateSelectOpen}
+          onClose={handleDateSelectClose}
+          selectedPlaces={selectedPlaces} // 선택된 장소 전달
+          onConfirm={handleDateSelectConfirm} // 선택한 날짜 및 장소를 저장 후 Planning 페이지로 이동
+          defaultTripData={{ // 여행제목과 목적지 기본 값 전달
+            tripTitle: `${item.name} 여행`,
+            destination: item.name,
+          }}
+        />
+      )}
+    </>
   );
 };
-
-const LoadingText = styled.p`
-  text-align: center;
-  color: #666;
-  padding: 20px;
-`;
 
 export default BestCardDetailRecommend;
 
@@ -84,7 +176,7 @@ const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: flex;
   justify-content: center;
@@ -95,55 +187,123 @@ const ModalContent = styled.div`
   display: flex;
   flex-direction: column;
   background-color: white;
-  width: 80%; /* 화면 너비의 90%로 설정 */
-  max-width: 1100px; /* 최대 너비를 800px로 설정 */
-  height: 80%;
-  min-height: 500px; /* 최소 높이를 500px로 설정 */
+  width: 80%;
+  max-width: 1100px;
+  height: 90%; /* 높이를 최대한 사용 */
+  min-height: 500px;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  overflow-y: auto; /* 스크롤 활성화 */
+
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+    width: 90%;
+    height: 90%;
+  }
+`;
+
+const BestCard = styled.section`
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  background-color: #fff;
+  margin-bottom: 20px;
 `;
 
 const Image = styled.img`
   aspect-ratio: 2.23;
   object-fit: cover;
   width: 100%;
-  border-radius: 2px;
+  border-radius: 8px 8px 0 0;
 `;
 
 const Title = styled.h1`
-  font-family: Spoqa Han Sans Neo, sans-serif;
-  font-weight: 500;
-  font-size: 24px;
-  margin-top: 15px;
-  margin-left: 15px;
   font-weight: bold;
+  font-size: 24px;
+  margin: 15px;
+`;
+
+const DescriptionContainer = styled.div`
+  padding: 12px 15px;
+  max-height: 150px;
+  overflow-y: auto; /* 스크롤 활성화 */
+
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+    max-height: 200px;
+  }
 `;
 
 const Description = styled.section`
-  font-family: Paperlogy, sans-serif;
   color: #333;
-  margin: 15px;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.6;
 `;
 
 const RecommendTitle = styled.h1`
-  font-family: Spoqa Han Sans Neo, sans-serif;
-  font-weight: 500;
-  font-size: 24px;
-  margin: 35px;
   font-weight: bold;
+  font-size: 24px;
+  margin: 8px 8px;
 `;
 
-const BestCard = styled.section`
-  border: 1px solid #ddd; /* 카드 테두리 */
-  border-radius: 2px; /* 둥근 모서리 */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+const SkeletonList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 0;
+`;
+
+const SkeletonItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+`;
+
+const SkeletonImage = styled.div`
+  width: 120px;
+  height: 120px;
+  border-radius: 4px;
   overflow: hidden;
-  width: 100%; /* 카드의 기본 너비 */
-  max-width: 100%; /* 최대 너비 설정 */
-  background-color: #fff; /* 카드 배경색 */
+`;
+
+const SkeletonDetails = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+`;
+
+const RecommendListContainer = styled.div`
+  flex-grow: 1;
+  overflow-y: auto; /* 스크롤 활성화 */
+  max-height: 100%; /* 부모 요소의 높이를 최대한 사용 */
+  padding-right: 10px; /* 스크롤바와 내용 사이의 여백 */
+
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+    max-height: 300px;
+  }
+`;
+
+const AddScheduleButton = styled.button`
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  background-color: #507dbc;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: center;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #3f5f8a;
+  }
 `;
