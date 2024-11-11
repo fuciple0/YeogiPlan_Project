@@ -8,8 +8,6 @@ import defaultProfileImage from '../assets/user_profile.png';
 
 
 
-
-
 const PostComponents = ({ posts = [] }) => {
   const [activePost, setActivePost] = useState(null);
   const [commentsData, setCommentsData] = useState({});
@@ -33,9 +31,9 @@ const PostComponents = ({ posts = [] }) => {
 
 
   // 댓글 아이콘 클릭 시 해당 게시글의 댓글 입력창 및 목록 표시
-  const handleCommentIconClick = (postId) => {
-    setActivePost((prev) => (prev === postId ? null : postId)); // 이미 열려 있으면 닫기
-    if (activePost !== postId) fetchComments(postId); // 댓글 목록 가져오기
+  const handleCommentIconClick = (talk_id) => {
+    setActivePost((prev) => (prev === talk_id ? null : talk_id)); // 이미 열려 있으면 닫기
+    if (activePost !== talk_id) fetchComments(talk_id); // 댓글 목록 가져오기
   };
 
 
@@ -46,11 +44,15 @@ const PostComponents = ({ posts = [] }) => {
 
   
   // 댓글 작성 함수
-  const handleCommentSubmit = async (postId, commentText) => {
+  const handleCommentSubmit = async (talk_id, commentText) => {
     if (!commentText.trim()) return;
 
     try {
+<<<<<<< HEAD
+      const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talk_id}/comments`, {
+=======
       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {
+>>>>>>> dev
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +66,7 @@ const PostComponents = ({ posts = [] }) => {
 
       if (response.ok) {
         console.log("댓글 작성 성공");
-        fetchComments(postId); // 댓글 작성 후 최신 댓글 목록 가져오기
+        fetchComments(talk_id); // 댓글 작성 후 최신 댓글 목록 가져오기
       } else {
         console.error("댓글 작성에 실패했습니다.");
       }
@@ -75,9 +77,12 @@ const PostComponents = ({ posts = [] }) => {
 
 
   // 특정 게시글의 댓글 목록 가져오기
-  const fetchComments = async (postId) => {
+  const fetchComments = async (talk_id) => {
     try {
-      const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {
+
+      const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talk_id}/comments`, {
+
+
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -88,7 +93,7 @@ const PostComponents = ({ posts = [] }) => {
         const responseData = await response.json();
         setCommentsData((prevData) => ({
           ...prevData,
-          [postId]: responseData.data || [],
+          [talk_id]: responseData.data || [],
         }));
       } else {
         console.error("댓글 목록을 가져오는 데 실패했습니다.");
