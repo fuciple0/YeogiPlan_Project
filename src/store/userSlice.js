@@ -1,4 +1,3 @@
-// src/store/userSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 export const userSlice = createSlice({
@@ -9,6 +8,7 @@ export const userSlice = createSlice({
       userId: null,
       email: null,
       nickname: null,
+      profile_photo: null, // 프로필 이미지 추가
       role: 'guest',
     },
     token: null,
@@ -30,6 +30,7 @@ export const userSlice = createSlice({
         userId: null,
         email: null,
         nickname: null,
+        profile_photo: null, // 로그아웃 시 프로필 이미지 초기화
         role: 'guest'
       };
       state.token = null;

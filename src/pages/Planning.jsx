@@ -280,4 +280,3 @@ const EditIcon = styled.span`
     color: #333;
   }
 `;
-
