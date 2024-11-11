@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { FaCheck, FaPlus } from "react-icons/fa";
+import { FaStar, FaCheck, FaPlus } from "react-icons/fa";
 import { IoIosWarning } from "react-icons/io";
 import Skeleton from "./Skeleton";
 
@@ -15,28 +15,21 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
 
         setIsLoading(true);
 
-        // Sample mock data
-        const mockData = [
-            {
-                place_id: "1",
-                place_name: "테스트 장소 1",
-                place_img: "https://via.placeholder.com/60",
-                place_location_x: 37.5665,
-                place_location_y: 126.9780,
-            },
-            {
-                place_id: "2",
-                place_name: "테스트 장소 2",
-                place_img: "https://via.placeholder.com/60",
-                place_location_x: 37.5765,
-                place_location_y: 126.9880,
-            },
-        ];
+        const url = `http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${searchInput}`;
 
-        setTimeout(() => {
-            setSearchResults(mockData);
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!response.ok) throw new Error("API 요청 실패");
+
+            setSearchResults(data.places);
+            console.log(data)
+        } catch (error) {
+            console.log("검색 오류: ", error);
+        } finally {
             setIsLoading(false);
-        }, 500);
+        }
     };
 
     const handleInputChange = (event) => {
@@ -99,10 +92,13 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
                     ) : searchResults.length > 0 ? (
                         searchResults.map((result) => (
                             <SearchResultItem key={result.place_id}>
-                                <img src={result.place_img} alt={result.place_name} />
+                                <img src={result.photo} alt={result.name} />
                                 <ResultInfo>
-                                    <ResultTitle>{result.place_name}</ResultTitle>
-                                    <ResultDescription>위도: {result.place_location_x}, 경도: {result.place_location_y}</ResultDescription>
+                                    <ResultTitle>{result.name}</ResultTitle>
+                                    <ResultDescription>
+                                        <FaStar color="#ffb535" size={16}/> {/* 별 아이콘 */}
+                                        <span>{result.rating ? result.rating.toFixed(1) : "없음"}</span> {/* 별점 수 표시 */}
+                                    </ResultDescription>
                                 </ResultInfo>
                                 <AddIcon onClick={() => toggleSelectItem(result)}>
                                     {selectedItems.includes(result) ? (
@@ -239,9 +235,12 @@ const ResultTitle = styled.div`
 `;
 
 const ResultDescription = styled.div`
-    color: #666;
+    color: #333;
     font-size: 12px;
     width: 92%;
+    display: flex;
+    align-items: center; /* 아이콘과 텍스트를 수평 중앙 정렬 */
+    gap: 4px; /* 아이콘과 텍스트 사이 간격 */
 `;
 
 const ResultRating = styled.div`
