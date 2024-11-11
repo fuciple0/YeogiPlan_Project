@@ -23,35 +23,21 @@ const SearchModal = ({ isOpen, onClose }) => {
 
         setIsLoading(true);
 
-        // 임의의 데이터 설정
-        const mockData = [
-            {
-                place_id: "1",
-                place_name: "테스트 장소 1",
-                place_img: "https://via.placeholder.com/60",
-                place_location_x: 37.5665,
-                place_location_y: 126.9780,
-            },
-            {
-                place_id: "2",
-                place_name: "테스트 장소 2",
-                place_img: "https://via.placeholder.com/60",
-                place_location_x: 37.5765,
-                place_location_y: 126.9880,
-            },
-            {
-                place_id: "3",
-                place_name: "테스트 장소 3",
-                place_img: "https://via.placeholder.com/60",
-                place_location_x: 37.5865,
-                place_location_y: 126.9980,
-            },
-        ];
+        const url = `http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${searchInput}`;
 
-        setTimeout(() => {
-            setSearchResults(mockData);
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!response.ok) throw new Error("API 요청 실패");
+
+            setSearchResults(data.places);
+            console.log(data)
+        } catch (error) {
+            console.log("검색 오류: ", error);
+        } finally {
             setIsLoading(false);
-        }, 500); 
+        }
     };
 
     const handleInputChange = (event) => {
@@ -88,58 +74,54 @@ const SearchModal = ({ isOpen, onClose }) => {
     };
 
     // DateSelectModal에서 날짜를 선택한 후 실행되는 함수
-    const handleDateSelectConfirm = async (tripData) => {
-        console.log("Redux에 저장할 tripData:", tripData);
+    const handleDateSelectConfirm = async (tripDataWithId) => {
+        console.log("Redux에 저장할 tripData:", tripDataWithId);
         console.log("Redux에 저장할 selectedPlaces:", selectedItems);
 
         // 1. Redux 상태 업데이트
         dispatch(addTripData({
-            tripData: {
-                tripTitle: tripData.tripTitle,
-                destination: tripData.destination,
-                startDate: tripData.startDate,
-                endDate: tripData.endDate,
-            },
+            tripData: tripDataWithId,
             places: selectedItems,
         }));
 
-        // 2. 데이터베이스에 저장
+        // 2. 각 장소를 tirp_plan_id와 함께 데이터베이스에 저장
+        const tripPlanId = tripDataWithId.trip_plan_id
+
+        // 3. 데이터베이스에 저장
         try {
-            const response = await fetch('http://15.164.142.129:3001/api/trip_plan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: 1, // 로그인 구현 전, 임시 ID로 설정
-                    trip_plan_title: tripData.tripTitle,
-                    start_date: tripData.startDate,
-                    end_date: tripData.endDate,
-                    destination: tripData.destination,
-                    route_shared: "public",
-                }),
-            });
+            await Promise.all(
+                selectedItems.map(async (place, index) => {
+                    const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripPlanId}/detail`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_id: 1, // 실제 user_id로 변경 필요
+                            trip_day: 1, // 기본값 또는 실제 여행 일정에 따라 설정
+                            place_name: place.name,
+                            place_name_x: place.location.lat,
+                            place_name_y: place.location.lng,
+                            place_id: place.place_id,
+                            memo: null,
+                            memo_type: "love",
+                            order_no: index + 1,
+                            review_id: null,
+                        }),
+                    });
 
-            const result = await response.json();
-            if (response.ok && result.success) {
-                console.log("여행 데이터 저장 성공:", result.data);
+                    if (response.ok) {
+                        console.log("장소 저장 성공:", place.name);
+                    } else {
+                        console.error("장소 저장 실패:", response.statusText);
+                    }
+                })
+            );
 
-                // tripData에 trip_plan_id 추가
-                const tripDataWithId = { ...tripData, trip_plan_id: result.data.trip_plan_id };
-                console.log("Redux에 저장할 tripDataWithId:", tripDataWithId); // 확인용 로그
-
-                // Redux 상태 업데이트
-                dispatch(addTripData({
-                    tripData: tripDataWithId,
-                    places: selectedItems,
-                }));
-
-                navigate("/planning"); // 저장 성공 시 Planning 페이지로 이동
-            } else {
-                console.error("여행 데이터 저장 실패:", result.message);
-            }
+            console.log("모든 장소가 성공적으로 추가되었습니다.");
+            navigate("/planning"); // 저장 성공 시 Planning 페이지로 이동
         } catch (error) {
-            console.error("API 요청 오류:", error);
+            console.error("장소 추가 중 오류 발생:", error);
         }
 
         setIsDateSelectOpen(false);
@@ -178,10 +160,13 @@ const SearchModal = ({ isOpen, onClose }) => {
                         ) : searchResults.length > 0 ? (
                             searchResults.map((result) => (
                                 <SearchResultItem key={result.place_id}>
-                                    <img src={result.place_img} alt={result.place_name} />
+                                    <img src={result.photo} alt={result.name} />
                                     <ResultInfo>
-                                        <ResultTitle>{result.place_name}</ResultTitle>
-                                        <ResultDescription>위도: {result.place_location_x}, 경도: {result.place_location_y}</ResultDescription>
+                                        <ResultTitle>{result.name}</ResultTitle>
+                                        <ResultDescription>
+                                            <FaStar color="#ffb535" size={16}/> {/* 별 아이콘 */}
+                                            <span>{result.rating ? result.rating.toFixed(1) : "없음"}</span> {/* 별점 수 표시 */}
+                                        </ResultDescription>
                                     </ResultInfo>
                                     <AddIcon onClick={() => toggleSelectItem(result)}>
                                         {selectedItems.includes(result) ? (
@@ -328,9 +313,12 @@ const ResultTitle = styled.div`
 `;
 
 const ResultDescription = styled.div`
-    color: #666;
+    color: #333;
     font-size: 12px;
     width: 92%;
+    display: flex;
+    align-items: center; /* 아이콘과 텍스트를 수평 중앙 정렬 */
+    gap: 4px; /* 아이콘과 텍스트 사이 간격 */
 `;
 
 const AddIcon = styled.div`
@@ -387,3 +375,4 @@ const AddButton = styled.button`
     font-weight: bold;
     cursor: pointer;
 `
+

@@ -11,12 +11,13 @@ const placeSlice = createSlice({
   reducers: {
     addTripData: (state, action) => {
       const { tripData, places } = action.payload;
+
       if (!tripData) {
         console.error("addTripData 액션에 tripData가 포함되지 않았습니다.");
         return;
       }
 
-      const { startDate, endDate, tripTitle, destination } = tripData;
+      const { startDate, endDate, tripTitle, destination, route_shared } = tripData;
 
       // startDate와 endDate로부터 dayCount 계산
       const start = dayjs(startDate);
@@ -24,13 +25,22 @@ const placeSlice = createSlice({
       const dayCount = end.diff(start, 'day') + 1;
 
       // tripData 전체 객체를 state에 저장
-      state.tripData = { ...tripData };
+      state.tripData = { ...tripData, dayCount, route_shared: tripData.route_shared };
       state.selectedPlaces = Array.from({ length: dayCount }, () => []);
 
-      places.forEach((place) => {
-        state.selectedPlaces[0].push(place); // DAY 1에 기본적으로 추가
-      });
+      if (places && Array.isArray(places)) {
+        places.forEach((place) => {
+          state.selectedPlaces[0].push(place); // DAY 1에 기본적으로 추가
+        });
+      } else {
+        console.warn("addTripData 액션에 places 배열이 포함되지 않았습니다.");
+      }
     },
+
+    updateTripData: (state, action) => {
+      state.tripData = { ...state.tripData, ...action.payload };
+    },
+
     addPlace: (state, action) => {
       const { dayIndex, newPlace } = action.payload;
       if (!state.selectedPlaces[dayIndex]) {
@@ -51,6 +61,5 @@ const placeSlice = createSlice({
   },
 });
 
-export const { addTripData, addPlace, removePlace, updatePlaceOrder } = placeSlice.actions;
+export const { addTripData, addPlace, updateTripData, removePlace, updatePlaceOrder } = placeSlice.actions;
 export default placeSlice.reducer;
-

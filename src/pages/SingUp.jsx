@@ -1,12 +1,14 @@
-// src/pages/Place.jsx
+// src/pages/SingUp.jsx
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FaCamera, FaEye, FaEyeSlash } from 'react-icons/fa';
 import default_profile from '../assets/user_profile.png';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/userSlice';
+import { useNavigate } from 'react-router-dom'; // useNavigate import
 
-const PlaceContainer = styled.div`
+
+const SingUpContainer = styled.div`
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -120,8 +122,10 @@ const Button = styled.button`
   margin-top: 40px;
 `;
 
-const Place = () => {
+const SingUp = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate(); // useNavigate 호출
+
 
     const [formData, setFormData] = useState({
         email: '',
@@ -184,7 +188,7 @@ const Place = () => {
                         userId: data.userId,
                         email: formData.email,
                         nickname: formData.nickname,
-                        profile_photo: data.profile_photo,
+                        profile_photo: `http://15.164.142.129:3001/${data.user.profile_photo}`, // 올바른 경로로 수정
                         role: 'member'
                     },
                     token: data.token,
@@ -193,6 +197,9 @@ const Place = () => {
 
                 setFormData({ email: '', password: '', confirmPassword: '', nickname: '', profile_photo: null });
                 setProfileImage(null); // 프로필 이미지 초기화
+
+                 // 회원가입 성공 시 홈 페이지로 이동
+                 navigate('/');
             } else {
                 alert('Error: ' + data.message);
             }
@@ -203,7 +210,7 @@ const Place = () => {
     };
 
     return (
-        <PlaceContainer>
+        <SingUpContainer>
             <ProfileWrapper>
                 <ProfileContainer onClick={() => document.getElementById('fileInput').click()}>
                     {profileImage ? (
@@ -281,8 +288,8 @@ const Place = () => {
                 </InputContainer>
                 <Button type="submit">회원가입</Button>
             </Form>
-        </PlaceContainer>
+        </SingUpContainer>
     );
 };
 
-export default Place;
+export default SingUp;

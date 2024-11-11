@@ -48,7 +48,11 @@ const PostComponents = ({ posts = [] }) => {
     if (!commentText.trim()) return;
 
     try {
+<<<<<<< HEAD
       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talk_id}/comments`, {
+=======
+      const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {
+>>>>>>> dev
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +79,10 @@ const PostComponents = ({ posts = [] }) => {
   // 특정 게시글의 댓글 목록 가져오기
   const fetchComments = async (talk_id) => {
     try {
+
       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talk_id}/comments`, {
+
+
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

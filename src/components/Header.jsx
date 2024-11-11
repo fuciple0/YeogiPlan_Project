@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import logo from '../assets/logo.png';
 
@@ -50,6 +51,25 @@ const NavLink = styled(Link)`
   }
 `;
 
+const ProfileImage = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+`;
+
+const LoginButton = styled(Link)`
+  color: black;
+  text-decoration: none;
+  font-size: 18px;
+  border: 1px solid black;
+  padding: 5px 10px;
+  border-radius: 5px;
+  &:hover {
+    background-color: #f0f0f0;
+  }
+`;
+
 const HamburgerMenu = styled.div`
   font-size: 24px;
   color: black;
@@ -61,6 +81,16 @@ const HamburgerMenu = styled.div`
 `;
 
 const Header = () => {
+  const { isLoggedIn, userInfo } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+
+  // 프로필 이미지 클릭 시 마이페이지로 이동
+  const handleProfileClick = () => {
+    if (isLoggedIn) {
+      navigate('/mypage');
+    }
+  };
+
   return (
     <HeaderContainer>
       <LogoSection>
@@ -78,21 +108,29 @@ const Header = () => {
           <NavItem>
             <NavLink to="/talk">토크</NavLink>
           </NavItem>
+
           <NavItem>
-            <NavLink to="/mypage">마이페이지</NavLink>
+   
+          {isLoggedIn ? (
+        <ProfileImage
+          src={userInfo.profile_photo || '/default-profile.png'}
+          alt="Profile"
+          onClick={handleProfileClick} // 클릭 시 마이페이지로 이동
+        />
+      ) : (
+        <LoginButton to="/login">로그인</LoginButton>
+      )}
+
+
+   
           </NavItem>
-          <NavItem>
-            <NavLink to="/place">장소</NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink to="/list">리스트</NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink to="/login">로그인</NavLink> {/* 로그인 메뉴 추가 */}
-          </NavItem>
+
+
         </NavList>
       </nav>
 
+      {/* 로그인 상태에 따른 표시 */}
+      
       <HamburgerMenu>☰</HamburgerMenu>
     </HeaderContainer>
   );

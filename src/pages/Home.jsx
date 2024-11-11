@@ -25,6 +25,7 @@ import incheonAirport from '../assets/home_img/airport.jpg';
 import hanlasan from '../assets/home_img/hanla.jpg';
 import waterfall from '../assets/home_img/waterfall.jpg';
 import chumsungdae from '../assets/home_img/tower.jpg';
+import { useNavigate } from 'react-router-dom';
 
 const popularDestinations = [
   { name: '제주도', imageUrl: jejuImage },
@@ -47,6 +48,7 @@ const howAboutThis = [
 ];
 
 const Home = () => {
+  const navigate = useNavigate(); // navigate 함수 사용
   const dispatch = useDispatch();
   const tripData = useSelector((state) => state.places.tripData);
   const selectedPlaces = useSelector((state) => state.places.selectedPlaces);
@@ -66,6 +68,7 @@ const Home = () => {
   const handleSearchModalConfirm = (data) => {
     dispatch(addTripData({ tripData: data.tripData, places: data.places }));
     closeSearchModal();
+    navigate("/planning"); // Planning 페이지로 이동
   };
 
   const openDetailModal = (place) => {
@@ -92,9 +95,9 @@ const Home = () => {
         onConfirm={handleSearchModalConfirm}
       />
 
-      {tripData && selectedPlaces.length > 0 && (
+      {/* {tripData && selectedPlaces.length > 0 && (
         <Planning tripData={tripData} initialPlaces={selectedPlaces} /> // Redux에서 데이터 전달
-      )}
+      )} */}
 
       <Section>
         <Title>지금 뜨고 있는 여행지 🔥</Title>
