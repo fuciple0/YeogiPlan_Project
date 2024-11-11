@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import DestinationCard from '../components/DestinationCard';
-import ReviewCard from '../components/RecommendPlaceCard';
 import SearchBar from '../components/SearchBar';
 import MainCarousel from '../components/MainCarousel';
 import SearchModal from '../components/SearchModal';
 import BestCardSlider from '../components/BestCardSlider';
+import RecommendPlaceCard from '../components/RecommendPlaceCard';
+import DetailPlaceInfoModal from '../components/DetailPlaceInfoModal';
+import Planning from './Planning';
+import { addTripData } from '../store/placeSlice'; // Redux 액션 임포트
 
 // 이미지 import
 import jejuImage from '../assets/home_img/jeju.png';
@@ -18,12 +21,11 @@ import danangImage from '../assets/home_img/danang.png';
 import tokyoImage from '../assets/home_img/tokyo.png';
 import parisImage from '../assets/home_img/paris.png';
 import spainImage from '../assets/home_img/spain.png';
-import incheonAirport from '../assets/home_img/airport.jpg'
-import hanlasan from '../assets/home_img/hanla.jpg'
-import waterfall from '../assets/home_img/waterfall.jpg'
-import chumsungdae from '../assets/home_img/tower.jpg'
-import RecommendPlaceCard from '../components/RecommendPlaceCard';
-
+import incheonAirport from '../assets/home_img/airport.jpg';
+import hanlasan from '../assets/home_img/hanla.jpg';
+import waterfall from '../assets/home_img/waterfall.jpg';
+import chumsungdae from '../assets/home_img/tower.jpg';
+import { useNavigate } from 'react-router-dom';
 
 const popularDestinations = [
   { name: '제주도', imageUrl: jejuImage },
@@ -39,64 +41,92 @@ const popularDestinations = [
 ];
 
 const howAboutThis = [
-  { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시'},
-  { name: '인천공항', imageUrl: incheonAirport, location: '인천광역시' },
-  { name: '한라산', imageUrl: hanlasan, location: '제주 서귀포시'},
+  { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시' },
+  { name: '인천공항', imageUrl: incheonAirport, location: '인천광역시 중구' },
+  { name: '한라산', imageUrl: hanlasan, location: '제주 서귀포시' },
   { name: '첨성대', imageUrl: chumsungdae, location: '경북 경주시' },
-  { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시'},
 ];
 
 const Home = () => {
+  const navigate = useNavigate(); // navigate 함수 사용
+  const dispatch = useDispatch();
+  const tripData = useSelector((state) => state.places.tripData);
+  const selectedPlaces = useSelector((state) => state.places.selectedPlaces);
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState(null);
 
-  const handleSearchBarClick = () => {
-    setIsModalOpen(true)  // 모달 열기
-  }
+  const openSearchModal = () => {
+    setIsSearchModalOpen(true);
+  };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false)  // 모달 닫기
-  }
+  const closeSearchModal = () => {
+    setIsSearchModalOpen(false);
+  };
+
+  const handleSearchModalConfirm = (data) => {
+    dispatch(addTripData({ tripData: data.tripData, places: data.places }));
+    closeSearchModal();
+    navigate("/planning"); // Planning 페이지로 이동
+  };
+
+  const openDetailModal = (place) => {
+    setSelectedPlace(place);
+    setIsDetailModalOpen(true);
+  };
+
+  const closeDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedPlace(null);
+  };
 
   return (
     <Container>
       <Section>
         <Slogan>여행을 꿈꾸는 순간,</Slogan>
-        <SearchBar onClick={handleSearchBarClick} isReadOnly={true}/>
+        <SearchBar onClick={openSearchModal} isReadOnly={true} />
         <MainCarousel images={popularDestinations} />
       </Section>
 
-      <SearchModal isOpen={isModalOpen} onClose={handleCloseModal}/>
-      
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={closeSearchModal}
+        onConfirm={handleSearchModalConfirm}
+      />
+
+      {/* {tripData && selectedPlaces.length > 0 && (
+        <Planning tripData={tripData} initialPlaces={selectedPlaces} /> // Redux에서 데이터 전달
+      )} */}
+
       <Section>
         <Title>지금 뜨고 있는 여행지 🔥</Title>
         <Subtitle>BEST 10</Subtitle>
         <BestCardSlider items={popularDestinations} />
-        {/* <Grid>
-          {popularDestinations.map((destination, index) => (
-            <DestinationCard
-              key={index}
-              name={destination.name}
-              imageUrl={destination.imageUrl}
-            />
-          ))}
-        </Grid> */}
       </Section>
 
       <Section>
-        <SectionTitle>이런 곳은 어때요?</SectionTitle>
+        <Title>이런 곳은 어때요?</Title>
         <RecommendGrid>
           {howAboutThis.map((place, index) => (
-            <RecommendPlaceCard key={index} imageUrl={howAboutThis.imageUrl} name={howAboutThis.name} location={howAboutThis.location} />
+            <RecommendPlaceCard
+              key={index}
+              imageUrl={place.imageUrl}
+              name={place.name}
+              location={place.location}
+              onImageClick={() => openDetailModal(place)}
+            />
           ))}
         </RecommendGrid>
-        
-        {/* <ReviewGrid>
-          {howAboutThis.map((review, index) => (
-            <ReviewCard key={index} name={review.name} imageUrl={review.imageUrl} />
-          ))}
-        </ReviewGrid> */}
       </Section>
+
+      {isDetailModalOpen && selectedPlace && (
+        <DetailPlaceInfoModal
+          isOpen={isDetailModalOpen}
+          onClose={closeDetailModal}
+          place={selectedPlace}
+        />
+      )}
     </Container>
   );
 };
@@ -108,80 +138,32 @@ const Container = styled.div`
   margin: 0 auto;
   padding: 20px;
   background-color: white;
-`
+`;
 
 const Section = styled.section`
   margin-bottom: 40px;
-`
+`;
 
 const Slogan = styled.h1`
-  font-family: 'Paperlogy-8ExtraBold','Spoqa Han Sans', sans-serif;
+  font-family: 'Paperlogy-8ExtraBold', 'Spoqa Han Sans', sans-serif;
   font-size: 32px;
-  color: #507DBC;
-`
+  color: #507dbc;
+`;
 
 const Title = styled.h2`
   font-size: 24px;
   font-weight: bold;
-`
+`;
 
-const Subtitle = styled.p`
+const Subtitle = styled.h3`
   font-size: 18px;
-`
+`;
 
 const RecommendGrid = styled.div`
   display: flex;
-  justify-content: space-around;
+  justify-content: space-evenly;
   gap: 20px;
   flex-wrap: wrap;
   margin-top: 20px;
-`
-
-// const Grid = styled.div`
-//   display: grid;
-//   grid-template-columns: repeat(5, 1fr);
-//   gap: 15px;
-
-//   @media (max-width: 1200px) {
-//     grid-template-columns: repeat(4, 1fr);
-//   }
-
-//   @media (max-width: 992px) {
-//     grid-template-columns: repeat(3, 1fr);
-//   }
-
-//   @media (max-width: 768px) {
-//     grid-template-columns: repeat(2, 1fr);
-//   }
-
-//   @media (max-width: 576px) {
-//     grid-template-columns: repeat(2, 1fr);
-//   }
-// `;
-
-const SectionTitle = styled.h3`
-  font-size: 20px;
-  font-weight: bold;
-`
-
-const ReviewGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 15px;
-
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  @media (max-width: 992px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 576px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
 `;
+
