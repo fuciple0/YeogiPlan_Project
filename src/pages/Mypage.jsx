@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import { logoutUser } from '../store/userSlice';
 import default_profile from '../assets/user_profile.png';
 import ProfileEditModal from '../components/ProfileEditModal';
+import SharedTripStamps from '../components/Mypage/MyTripPlan';
 
 const Mypage = () => {
   const dispatch = useDispatch();
@@ -55,18 +56,21 @@ const Mypage = () => {
 
       <Content>
         {activeTab === 'travelLog' ? (
-          <TravelLogContent>여행 기록을 보여줄 영역입니다.</TravelLogContent>
+          <TravelLogContent>여행 기록을 보여줄 영역입니다.
+            <SharedTripStamps></SharedTripStamps>
+
+          </TravelLogContent>
         ) : (
           <ReviewContent>작성한 리뷰를 보여줄 영역입니다.</ReviewContent>
         )}
       </Content>
 
-      <ProfileEditModal 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
-        onSave={saveProfile} 
+      <ProfileEditModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSave={saveProfile}
         initialProfileImage={profile.image}
-        initialNickname={profile.nickname} 
+        initialNickname={profile.nickname}
       />
     </MypageContainer>
   );
