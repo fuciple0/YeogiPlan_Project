@@ -8,6 +8,7 @@ import default_profile from '../assets/user_profile.png';
 import ProfileEditModal from '../components/ProfileEditModal';
 import SharedTripStamps from '../components/Mypage/MyTripPlan';
 
+
 const Mypage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate(); // useNavigate 훅 초기화

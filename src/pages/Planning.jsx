@@ -7,6 +7,15 @@ import AddPlacesModal from '../components/AddPlacesModal';
 import { updateTripData, addPlace, updatePlaceOrder } from '../store/placeSlice';
 import EditTripModal from '../components/Planning/EditTripModal';
 
+// dnd-kit 관련 컴포넌트 및 훅
+import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+import MapComponent from '../components/Planning/MapComponent';
+
+
 const Planning = () => {
   const dispatch = useDispatch();
   
@@ -29,13 +38,6 @@ const Planning = () => {
   const [destination, setDestination] = useState(tripData.destination || '');
   const [startDate, setStartDate] = useState(tripData.startDate);
   const [endDate, setEndDate] = useState(tripData.endDate);
-
-  // // tripData가 변경될 때마다 컴포넌트 상태를 업데이트
-  // useEffect(() => {
-  //   setTitle(tripData.tripTitle);
-  //   setStartDate(tripData.startDate);
-  //   setEndDate(tripData.endDate);
-  // }, [tripData.tripTitle, tripData.startDate, tripData.endDate]);
   
   // 여행 날짜 범위에 따른 DAY 배열 생성
   const generateDays = () => {
@@ -69,11 +71,6 @@ const Planning = () => {
     setIsAddPlacesModalOpen(false);
     setCurrentDay(null);
   };
-
-  // // 편집 버튼을 눌렀을 때 장소 수정
-  // const handleEditButtonClick = () => {
-  //   setIsEditing(true);
-  // };
 
   const handleSaveTripData = async (updatedData) => {
     const { trip_plan_id, route_shared } = tripData;
@@ -156,7 +153,7 @@ const Planning = () => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              user_id: userId || 1,
+              user_id: userId,
               trip_day: tripDay, // currentDay + 1 값을 사용하여 trip_day 설정
               place_name: place.name,
               place_name_x: place.location.lat,
@@ -186,10 +183,85 @@ const Planning = () => {
     closeAddPlacesModal();
   };
 
+  // MouseSensor와 TouchSensor를 설정하여 모바일 터치 이벤트와 데스크톱 클릭 이벤트를 모두 지원
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: {
+      distance: 5, // 드래그를 시작하기 전에 일정 거리 이동 필요 (모바일에서 의도치 않은 드래그 방지)
+    },
+  });
+  
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: {
+      delay: 250, // 모바일에서는 드래그가 시작되기 전에 짧은 딜레이를 줌 (길게 눌러야 이동 시작)
+      tolerance: 10, // 터치 허용 범위 설정 (10px)
+    },
+  });
+
+  const sensors = useSensors(mouseSensor, touchSensor);  
+
+  // 드래그 종료 시 실행되는 함수
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+  
+    if (!over || active.id === over.id) return;
+  
+    const activeId = active.id;
+    const overId = over.id;
+
+    // dayIndex 찾기 (DAY 구분)
+    const dayIndex = days.findIndex((day) => day.includes(activeId.split('-')[0]));
+  
+    const oldIndex = selectedPlaces[dayIndex].findIndex(item => item.place_id === activeId);
+    const newIndex = selectedPlaces[dayIndex].findIndex(item => item.place_id === overId);
+  
+    if (oldIndex !== -1 && newIndex !== -1) {
+      // 순서 변경된 상태 임시 적용
+      const updatedPlaces = arrayMove(selectedPlaces[dayIndex], oldIndex, newIndex);
+      console.log("Updated Places Array:", updatedPlaces); // 디버깅용
+
+      // Redux 상태 업데이트      
+      dispatch(updatePlaceOrder({ dayIndex, updatedPlaces }));
+  
+      // 데이터베이스 업데이트
+      try {
+        await Promise.all(
+          updatedPlaces.map(async (place, index) => {
+            const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripData.trip_plan_id}/detail/${place.trip_plan_detail_id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                order_no: index + 1,
+                trip_day: dayIndex + 1,
+                place_name: place.name,
+                place_name_x: place.location.lat,
+                place_name_y: place.location.lng,
+                place_id: place.place_id,
+                memo: place.memo,
+                memo_type: place.memo_type,
+                review_id: place.review_id,
+              }),
+            });
+            
+            if (!response.ok) {
+              throw new Error("서버 업데이트 실패");
+            }
+          })
+        );
+      } catch (error) {
+        console.error("순서 업데이트 중 오류 발생:", error);
+  
+        // 서버 오류 시 원래 순서로 롤백
+        const originalPlaces = arrayMove(updatedPlaces, newIndex, oldIndex); // 기존 순서로 롤백
+        dispatch(updatePlaceOrder({ dayIndex, originalPlaces }));
+      }
+    }
+  };
+
   return (
     <Container>
-      <TripInfo>
-        <TripTitle>{tripData.tripTitle || '여행 제목'}</TripTitle>
+      <LeftColumn>
+        <TripInfo>
+          <TripTitle>{tripData.tripTitle || '여행 제목'}</TripTitle>
           <TripDestination>{tripData.destination || '목적지 정보 없음'}</TripDestination>
           <TripDates>
             {dayjs(tripData.startDate).format('YYYY.MM.DD')} - {dayjs(tripData.endDate).format('MM.DD')}
@@ -198,62 +270,119 @@ const Planning = () => {
             <EditButton onClick={() => setIsEditModalOpen(true)}>수정</EditButton>
             <InviteButton onClick={() => setIsInviteModalOpen(true)}>+ 일행초대</InviteButton>
           </ButtonContainer>
-      </TripInfo>
+        </TripInfo>
 
-      {/* 각 DAY별 일정 목록 */}
-      {days.map((day, dayIndex) => (
-        <div key={dayIndex}>
-          <h2>{day}</h2>
-          <PlaceList>
-            {(Array.isArray(selectedPlaces[dayIndex]) ? selectedPlaces[dayIndex] : []).map((place, index) => (
-              <PlaceItem key={place.place_id}>
-                <OrderNumber>{index + 1}</OrderNumber>
-                <PlaceContent>
-                  <PlaceTitle>{place.name} 
-                  </PlaceTitle>
-                  {isEditing && (
-                  <>
-                    <MoveButton onClick={() => handleMovePlace(place.place_id, 'up')}>↑</MoveButton>
-                    <MoveButton onClick={() => handleMovePlace(place.place_id, 'down')}>↓</MoveButton>
-                    <DeleteButton onClick={() => handleDeletePlace(place.place_id)}>삭제</DeleteButton>
-                  </>
-                )}
-                </PlaceContent>
-              </PlaceItem>
-            ))}
-          </PlaceList>
-          <AddPlaceButton onClick={() => openAddPlacesModal(dayIndex)}>+ 장소 추가</AddPlaceButton>
-        </div>
-      ))}
+        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd} autoScroll={false} sensors={sensors}>
+          {days.map((day, dayIndex) => (
+            <div key={dayIndex}>
+              <h2>{day}</h2>
+              <SortableContext items={selectedPlaces[dayIndex]?.map((place) => place.place_id) || []} strategy={verticalListSortingStrategy}>
+                <PlaceList>
+                  {(selectedPlaces[dayIndex] || []).map((place) => (
+                    <SortableItem key={place.place_id} place={place} />
+                  ))}
+                </PlaceList>
+              </SortableContext>
+              <AddPlaceButton onClick={() => openAddPlacesModal(dayIndex)}>+ 장소 추가</AddPlaceButton>
+            </div>
+          ))}
+        </DndContext>
+      </LeftColumn>
 
-      {/* EditTripModal 호출 */}
+      <RightColumn>
+        <MapWrapper>
+            <MapComponent />
+        </MapWrapper>
+      </RightColumn>
+
+      {/* Modals */}
       <EditTripModal
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         tripData={{ tripTitle: title, startDate, endDate }}
         onSave={handleSaveTripData}
-      />      
-
+      />
       {isInviteModalOpen && (
         <InviteEmailModal open={isInviteModalOpen} onClose={handleInviteModalClose} />
       )}
-
       {isAddPlacesModalOpen && (
-        <AddPlacesModal 
-          isOpen={isAddPlacesModalOpen} 
-          onClose={closeAddPlacesModal} 
-          onConfirm={handlePlaceAdd} 
+        <AddPlacesModal
+          isOpen={isAddPlacesModalOpen}
+          onClose={closeAddPlacesModal}
+          onConfirm={handlePlaceAdd}
         />
       )}
     </Container>
   );
 };
 
+const SortableItem = ({ place }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: place.place_id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <PlaceItem ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <OrderNumber>{place.order_no}</OrderNumber>
+      <PlaceContent>
+        <PlaceTitle>{place.name}</PlaceTitle>
+      </PlaceContent>
+    </PlaceItem>
+  );
+};
+
 export default Planning;
 
 const Container = styled.div`
-  padding: 20px;
-  position: relative;
+  display: flex;
+  width: 100%;
+  padding: 60px;
+  border: 1px solid black;
+
+  // 모바일 화면일 때 flex 방향을 column으로 설정하여 세로로 배치
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 20px;
+  }  
+`;
+
+const LeftColumn = styled.div`
+  flex: 1;
+  padding-right: 20px;
+
+  // 모바일 화면에서 고정 높이와 스크롤 설정
+  @media (max-width: 768px) {
+    max-height: 50vh; // 화면의 50%만큼 높이 설정
+    overflow-y: auto; // 스크롤 가능하게 설정
+    padding-right: 0; // 모바일에서는 오른쪽 여백 제거
+    margin-bottom: 20px; // 지도와 여백 추가
+  }  
+`;
+
+const RightColumn = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  // 모바일 화면에서는 지도 섹션이 하단에 오도록 설정
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 50vh; // 화면의 나머지 50% 차지
+  }  
+`;
+
+const MapWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+
+  // 모바일 화면에서 지도가 세로로 배치되고 적절한 높이로 표시되도록 설정
+  @media (max-width: 768px) {
+    height: 100%; // 모바일에서는 주어진 높이를 모두 사용
+  }  
 `;
 
 const TripInfo = styled.div`
@@ -275,7 +404,7 @@ const TripDestination = styled.div`
 
 const TripDates = styled.div`
   font-size: 16px;
-  color: #555;
+  color: #555; 
   margin-top: 8px;
 `;
 
@@ -293,7 +422,6 @@ const EditButton = styled.button`
   border-radius: 20px;
   font-size: 14px;
   cursor: pointer;
-  margin-top: 10px;
 
   &:hover {
     background-color: #e87a00;
@@ -303,10 +431,10 @@ const EditButton = styled.button`
 const InviteButton = styled.button`
   background-color: #507dbc;
   color: white;
-  padding: 8px 12px;
+  padding: 8px 12px; /* EditButton과 동일하게 설정 */
   border: none;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 14px; /* EditButton과 동일하게 설정 */
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
 
@@ -343,22 +471,25 @@ const PlaceList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 100px; /* 추가 */
 `;
 
 const PlaceItem = styled.div`
   display: flex;
-  width: 300px;
+  width: 100%; /* 넓이를 100%로 지정 */
   align-items: center;
   background-color: #f9f9f9;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
+  min-height: 50px; /* 추가 */
 `;
 
+
 const OrderNumber = styled.div`
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   background-color: #007bff;
   color: white;
   font-weight: bold;
@@ -368,18 +499,17 @@ const OrderNumber = styled.div`
   justify-content: center;
   font-size: 12px;
   position: absolute;
-  left: -40px;
+  left: -32px;
 `;
 
 const PlaceContent = styled.div`
   display: flex;
   flex-direction: column;
-  margin-left: 16px;
 `;
 
 const PlaceTitle = styled.div`
   font-weight: bold;
-  font-size: 18px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   gap: 8px;

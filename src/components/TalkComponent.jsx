@@ -11,7 +11,6 @@ import defaultProfileImage from '../assets/user_profile.png';
 const fetchPosts = async (page, limit) => {
   try {
     const response = await fetch(`http://15.164.142.129:3001/api/talk_board?page=${page}&limit=${limit}`,  {
-
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -21,13 +20,11 @@ const fetchPosts = async (page, limit) => {
     if (response.ok) {
       const responseData = await response.json();
       console.log("서버에서 가져온 게시글 데이터:", responseData); // 서버 응답 데이터 확인
-
-      return {
+       return {
         posts: responseData.data,
         pagination: responseData.pagination, // 페이지네이션 데이터 반환
       };
-
-      // setPosts(responseData.data);
+       // setPosts(responseData.data);
       // setPagination(responseData.pagination); // 페이지네이션 데이터 저장
     } else {
       console.error("게시글 목록을 가져오는 데 실패했습니다.");
@@ -39,7 +36,8 @@ const fetchPosts = async (page, limit) => {
 };
 
 
-const TalkComponent = ({ onAddPost }) => {
+// 게시글 작성
+  const TalkComponent = ({ onAddPost }) => {
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(1); // 현재 페이지 번호 상태
   const [limit] = useState(10); // 페이지당 게시글 수 상태
@@ -51,13 +49,10 @@ const TalkComponent = ({ onAddPost }) => {
       user_id: userInfo.userId,
       talk_title: title,
       talk_message: content,
-      
-      
-    };
+      };
 
     try {
-    //   console.log("Post 데이터:", post);
-    //   console.log("전송할 데이터:", requestBody);
+      console.log("전송할 데이터:", requestBody);
       const response = await fetch('http://15.164.142.129:3001/api/talk_board', {
         method: 'POST',
         headers: {
@@ -78,8 +73,7 @@ const TalkComponent = ({ onAddPost }) => {
         console.log("새로운 게시글:", newPost);
         setPosts((prevPosts) => [newPost, ...prevPosts]);
         // fetchPosts(page, limit, setPosts, setPagination);
-       
-      } else {
+       } else {
         console.error("게시글 작성에 실패했습니다.");
       }
     } catch (error) {
@@ -115,8 +109,7 @@ const TalkComponent = ({ onAddPost }) => {
     <>
       {/* 게시글 목록 렌더링 */}
       <PostComponents posts={posts} />
-
-       {/* 페이지네이션 컨트롤 */}
+      {/* 페이지네이션 컨트롤 */}
     <PaginationContainer>
       <PaginationButton onClick={() => handlePageChange(page - 1)} disabled={page <= 1}>
         이전

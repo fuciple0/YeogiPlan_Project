@@ -20,11 +20,13 @@ const PostComponents = ({ posts = [] }) => {
       ? `http://15.164.142.129:3001/${profilePhoto.replace(/\\/g, "/")}`
       : defaultProfileImage;
 
-    return (
-      <img
-        src={imageURL}
-        alt="프로필 이미지"
-        style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 10 }}
+      return (
+      <img 
+        src={imageURL} 
+        alt="프로필 이미지" 
+        style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 10 }} 
+
+
       />
     );
   };
@@ -37,7 +39,7 @@ const PostComponents = ({ posts = [] }) => {
   };
 
 
-  const formatDate = (isoString) => {
+    const formatDate = (isoString) => {
     const date = new Date(isoString);
     return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
   };
@@ -46,10 +48,18 @@ const PostComponents = ({ posts = [] }) => {
   // 댓글 작성 함수
   const handleCommentSubmit = async (talk_id, commentText) => {
     if (!commentText.trim()) return;
-
     try {
 
+
+
       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {
+
+      // 전송하려는 데이터를 콘솔에 출력
+      console.log("전송 데이터:", {
+      user_id: userInfo.userId,
+      contents: commentText,
+      parent_id: null,
+    });
 
         method: 'POST',
         headers: {
@@ -77,17 +87,13 @@ const PostComponents = ({ posts = [] }) => {
   // 특정 게시글의 댓글 목록 가져오기
   const fetchComments = async (talk_id) => {
     try {
-
-      const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talk_id}/comments`, {
-
-
+        const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talk_id}/comments`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-
-      if (response.ok) {
+       if (response.ok) {
         const responseData = await response.json();
         setCommentsData((prevData) => ({
           ...prevData,
