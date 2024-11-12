@@ -57,7 +57,7 @@ const Mypage = () => {
 
       <Content>
         {activeTab === 'travelLog' ? (
-          <TravelLogContent>
+          <TravelLogContent>여행 기록을 보여줄 영역입니다.
             <SharedTripStamps></SharedTripStamps>
 
           </TravelLogContent>
