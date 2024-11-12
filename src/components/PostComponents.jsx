@@ -55,6 +55,21 @@ const PostComponents = ({ posts = [] }) => {
     if (activePost !== talk_id) fetchComments(talk_id); // 댓글 목록 가져오기
   };
 
+
+  const formatDate = (dateString) => {
+    // "2024-11-12T14:05:52.000Z" 형태의 문자열에서 필요한 부분 추출
+    const [datePart, timePart] = dateString.split("T");
+    const [year, month, day] = datePart.split("-");
+    let [hour, minute] = timePart.split(":");
+    
+    // 시간 형식을 12시간제로 변환하고 오전/오후 결정
+    const period = hour >= 12 ? "오후" : "오전";
+    hour = hour % 12 || 12; // 0시를 12시로 변환
+    
+    // 원하는 형식으로 문자열 조합 (초 제외)
+    return `${year}. ${month}. ${day}. ${period} ${hour}:${minute}`;
+  };
+
   // 댓글 작성 함수
   const handleCommentSubmit = async (talk_id, commentText) => {
     if (!commentText.trim()) return;
