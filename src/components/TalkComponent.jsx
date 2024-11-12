@@ -87,6 +87,7 @@ console.log("userInfo.userId:", userInfo?.userId); // userId 값 확인
     }
   }, [userInfo]);
 
+
    // 페이지 로드 시 게시글 목록 불러오기
    useEffect(() => {
     const loadPosts = async () => {
