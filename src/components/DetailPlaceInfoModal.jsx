@@ -6,14 +6,22 @@ import ReviewForm from './ReviewForm';
 import default_profile from '../assets/user_profile.png';
 import ReviewList from './ReviewList';
 
+
+
 const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
+
   if (!isOpen || !place) return null;
+   // place가 있는지, 그리고 place.id가 유효한 값인지 확인합니다.
+  //  const place_id = 'ChIJWfpeOoOaezUR1L5cy5agS40';
+  //  console.log("DetailPlaceInfoModal에서 전달하는 placeId:", place_id);
 
   const [apiData, setApiData] = useState(null);
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showReviewList, setShowReviewList] = useState(false);
   const [reviews, setReviews] = useState([]);
+
 
   useEffect(() => {
     if (place && place.name) {
@@ -26,7 +34,8 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
               address: data.places[0].address,
               hours: data.places[0].operating_hours,
               phone: data.places[0].phone_number,
-              holidays: "",  // 만약 휴무일 정보가 필요하다면, 별도로 처리해야 합니다.
+              // holidays: "",  // 만약 휴무일 정보가 필요하다면, 별도로 처리해야 합니다.
+              holidays: data.places[0].place_id,
             });
           }
         })
@@ -35,11 +44,12 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
   }, [place]);
 
 
- 
+
 
   const handleRatingClick = (rate) => {
     setRating(rate);
     setShowReviewForm(true);
+    setShowReviewList(true); 
   };
 
   const handleReviewSubmit = (reviewText, selectedImages) => {
@@ -60,6 +70,8 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
     setShowReviewForm(false);
     setRating(0);
   };
+
+ 
 
   return (
     <Overlay onClick={onClose}>
@@ -107,12 +119,13 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
             ))}
           </StarContainer>
           {!showReviewForm && <ReviewMessage>별점을 남겨주세요!</ReviewMessage>}
-          <ReviewFormContainer show={showReviewForm ? true : undefined}>
+          {/* <ReviewFormContainer show={showReviewForm ? true : undefined}> */}
+          <ReviewFormContainer show={showReviewForm}>
             {showReviewForm && (
               <ReviewForm onSubmit={handleReviewSubmit} onCancel={handleReviewCancel} />
             )}
           </ReviewFormContainer>
-          <ReviewList placeId={place.id} />
+          {showReviewList && <ReviewList placeId={place.place_id} />}
         </BottomSection>
       </ModalContent>
     </Overlay>
