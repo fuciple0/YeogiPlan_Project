@@ -1,42 +1,88 @@
 
-import React, { useState } from 'react'
+import React, { useState, useEffect  } from 'react'
 import styled from 'styled-components'
 import { FaStar, FaThumbsUp, FaRegThumbsUp } from 'react-icons/fa'
+import defaultProfileImage from '../assets/user_profile.png'; 
 
-const ReviewList = ({ reviews }) => {
-    return (
-        <ReviewContainer>
-            {reviews.map((review, index) => (
-                <ReviewItem key={index}>
-                    <ProfileSection>
-                        <ProfileImage src={review.profileImage} alt="프로필 이미지" />
-                        <NickAndRating>
-                            <Nickname>{review.nickname}</Nickname>
-                            <Rating>
-                            {[...Array(5)].map((_, i) => (
-                                <FaStar key={i} color={i < review.rating ? '#FFC978' : '#ddd'} />
-                            ))}
-                            </Rating>
-                        </NickAndRating>
-                    </ProfileSection>
-                    <ReviewText>{review.text}</ReviewText>
-                    {review.images.length > 0 && (
-                        <ImageContainer>
-                            {review.images.map((src, i) => (
-                                <ReviewImage key={i} src={src} alt={`Review ${i + 1}`} />
-                            ))}
-                        </ImageContainer>
-                    )}
-                    <UsefulButton review={review} />
-                </ReviewItem>
-            ))}
-        </ReviewContainer>
-    )
-}
+
+
+
+// 리뷰 데이터 가져오기
+const fetchPlaceReviews = async (place_id) => {
+  
+  try {
+    const response = await fetch(`http://15.164.142.129:3001/api/reviews/place/${place_id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        
+      },
+    });
+
+    if (response.ok) {
+      
+      const data = await response.json();
+      console.log("서버에서 가져온 데이터:", data);
+      return data.reviews || [];
+    } else {
+      console.error("리뷰 조회에 실패했습니다.");
+      return [];
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return [];
+  }
+};
+
+// 리뷰 목록 컴포넌트
+const ReviewList = ({ placeId }) => {
+  const [reviews, setReviews] = useState([]);
+
+  // 리뷰 데이터 불러오기
+  useEffect(() => {
+    const loadReviews = async () => {
+      const data = await fetchPlaceReviews(placeId);
+      setReviews(data);
+    };
+    loadReviews();
+  }, [placeId]);
+
+
+
+
+  return (
+    <ReviewContainer>
+      {reviews.map((review) => (
+        <ReviewItem key={review.review_id}>
+          <ProfileSection>
+          <ProfileImage src={review.profile_photo ? `http://15.164.142.129:3001/${review.profile_photo}` : defaultProfileImage} alt="프로필 이미지" />
+            <NickAndRating>
+              <Nickname>{review.username}</Nickname>
+              <Rating>
+                {[...Array(5)].map((_, i) => (
+                  <FaStar key={i} color={i < review.rating ? '#FFC978' : '#ddd'} />
+                ))}
+              </Rating>
+            </NickAndRating>
+          </ProfileSection>
+          <ReviewText>{review.comment}</ReviewText>
+          {review.photo_urls && review.photo_urls.length > 0 && (
+            <ImageContainer>
+              {review.photo_urls.map((src, i) => (
+                <ReviewImage key={i} src={src} alt={`Review ${i + 1}`} />
+              ))}
+            </ImageContainer>
+          )}
+          <UsefulButton initialCount={review.likes_count} />
+        </ReviewItem>
+      ))}
+    </ReviewContainer>
+  );
+};
 
 const UsefulButton = () => {
     const [isUseful, setIsUseful] = useState(false)
-    const [usefulCount, setUsefulCount] = useState(0)
+    const [usefulCount, setUsefulCount] = useState(initialCount);
 
     const toggleUseful = () => {
         setIsUseful(!isUseful)

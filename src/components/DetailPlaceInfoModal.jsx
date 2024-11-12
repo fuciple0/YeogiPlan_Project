@@ -6,12 +6,23 @@ import ReviewForm from './ReviewForm';
 import default_profile from '../assets/user_profile.png';
 import ReviewList from './ReviewList';
 
+
+
 const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
+
+  if (!isOpen || !place) return null;
+   // place가 있는지, 그리고 place.id가 유효한 값인지 확인합니다.
+  //  const place_id = 'ChIJWfpeOoOaezUR1L5cy5agS40';
+  //  console.log("DetailPlaceInfoModal에서 전달하는 placeId:", place_id);
+
   const [apiData, setApiData] = useState(null);
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(4.8);  // 기본 rating 값
   const [hoveredRating, setHoveredRating] = useState(0);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showReviewList, setShowReviewList] = useState(false);
   const [reviews, setReviews] = useState([]);
+  const [placeId, setPlaceId] = useState(null);
+
 
   useEffect(() => {
     if (place && place.name) {
@@ -19,13 +30,18 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
         .then(response => response.json())
         .then(data => {
           if (data.places && data.places[0]) {
+            const fetchedPlace = data.places[0];
             setApiData({
-              description: data.places[0].description,
-              address: data.places[0].address,
-              hours: data.places[0].operating_hours,
-              phone: data.places[0].phone_number,
-              holidays: "",  // 만약 휴무일 정보가 필요하다면, 별도로 처리해야 합니다.
+
+
+              description: fetchedPlace.description,
+              address: fetchedPlace.address,
+              hours: fetchedPlace.operating_hours,
+              phone: fetchedPlace.phone_number,
+              holidays: ""
+
             });
+            setPlaceId(fetchedPlace.place_id);  // place_id 저장
           }
         })
         .catch(err => console.error('API fetch error:', err));
@@ -33,17 +49,16 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
   }, [place]);
 
 
-  if (!isOpen || !place) return null;
-
   const handleRatingClick = (rate) => {
     setRating(rate);
     setShowReviewForm(true);
+    setShowReviewList(true); 
   };
 
   const handleReviewSubmit = (reviewText, selectedImages) => {
     const newReview = {
       profileImage: default_profile,
-      nickname: '익명',
+      nickname: "userInfo.nickname",  // userInfo.nickname 사용 시 필요
       rating,
       text: reviewText,
       images: selectedImages,
@@ -51,13 +66,15 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
     };
     setReviews([newReview, ...reviews]);
     setShowReviewForm(false);
-    setRating(0);
+    setRating(4.8);  // 기본 rating 값으로 초기화
   };
 
   const handleReviewCancel = () => {
     setShowReviewForm(false);
-    setRating(0);
+    setRating(4.8);
   };
+
+ 
 
   return (
     <Overlay onClick={onClose}>
@@ -72,7 +89,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
               {apiData?.description || ""}
             </PlaceDescription>
             <Rating>
-              <FaStar color="#FFC978" /> 4.8
+              <FaStar color="#FFC978" /> {rating}
             </Rating>
             <Details>
               <DetailItem><strong>주소:</strong> {apiData?.address || ""}</DetailItem>
@@ -105,12 +122,20 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
             ))}
           </StarContainer>
           {!showReviewForm && <ReviewMessage>별점을 남겨주세요!</ReviewMessage>}
-          <ReviewFormContainer show={showReviewForm ? true : undefined}>
+          {/* <ReviewFormContainer show={showReviewForm ? true : undefined}> */}
+          <ReviewFormContainer show={showReviewForm}>
             {showReviewForm && (
-              <ReviewForm onSubmit={handleReviewSubmit} onCancel={handleReviewCancel} />
+              <ReviewForm
+                onSubmit={handleReviewSubmit}
+                onCancel={handleReviewCancel}
+                placeId={placeId}
+                placeName={place.name}
+                rating={rating}
+              />
             )}
           </ReviewFormContainer>
-          <ReviewList reviews={reviews} />
+
+          <ReviewList placeId={placeId} />
         </BottomSection>
       </ModalContent>
     </Overlay>

@@ -159,25 +159,35 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
+        // 사용자 정보 구성
         const userInfo = {
-          userId: data.userId,
+          userId: data.user.user_id, // 수정된 부분
           email: formData.email,
-          nickname: data.nickname,
+          nickname: data.user.nickname,
           profile_photo: `http://15.164.142.129:3001/${data.user?.profile_photo}`,
           role: data.role || 'member',
         };
+        console.log("Redux에 저장할 사용자 정보:", userInfo); // Redux에 저장할 데이터 확인
 
-        if (rememberMe) {
-          localStorage.setItem('accessToken', data.token);
-          localStorage.setItem('userInfo', JSON.stringify(userInfo));
-        } else {
-          sessionStorage.setItem('accessToken', data.token);
-          sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
-        }
 
-        dispatch(setUser({ userInfo, preferences: { theme: 'dark', language: 'ko' } }));
+         // rememberMe 상태에 따라 로컬 또는 세션 스토리지에 저장
+          const storage = rememberMe ? localStorage : sessionStorage;
+          storage.setItem('accessToken', data.token);
+          storage.setItem('userInfo', JSON.stringify(userInfo));
+
+        // Redux에 사용자 정보와 토큰을 함께 저장
+          dispatch(setUser({
+            userInfo,
+            token: data.token,
+            preferences: { theme: 'dark', language: 'ko' }
+          }));
+
+        // 폼 상태 초기화
         setFormData({ email: '', password: '' });
+
+        // 홈 페이지로 이동
         navigate('/');
+        
       } else {
         setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
       }

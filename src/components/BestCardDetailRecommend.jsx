@@ -6,6 +6,7 @@ import DateSelectModal from './DateSelectModal';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addTripData } from '../store/placeSlice';
+import { useSelector } from 'react-redux';
 
 const BestCardDetailRecommend = ({ item, onClose }) => {
   const [description, setDescription] = useState('');
@@ -16,6 +17,9 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  // userSlice에서 user_id 가져오기
+  const userId = useSelector((state) => state.user.userInfo.userId);  
 
   useEffect(() => {
     const fetchDescription = async () => {
@@ -57,58 +61,67 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
     setIsDateSelectOpen(false);
   };
 
-  // DateSelectModal에서 날짜 선택 후 확인 버튼 클릭 시 처리 함수
-  const handleDateSelectConfirm = async (tripDataWithId) => {
-    console.log("Redux에 저장할 tripData:", tripDataWithId);
-    console.log("Redux에 저장할 selectedPlaces:", selectedPlaces);
+// DateSelectModal에서 날짜 선택 후 확인 버튼 클릭 시 처리 함수
+const handleDateSelectConfirm = async (tripDataWithId) => {
+  console.log("Received tripDataWithId:", tripDataWithId); // tripDataWithId 확인
 
-    // Redux에 tripData와 선택된 장소들 저장
-    dispatch(addTripData({
-      tripData: tripDataWithId,
-      places: selectedPlaces,
-    }));
+  const tripPlanId = tripDataWithId.trip_plan_id;
+  console.log("tripPlanId:", tripPlanId);
 
-    const tripPlanId = tripDataWithId.trip_plan_id
+  // Redux에 tripData와 선택된 장소들 저장
+  const updatedPlacesWithId = await Promise.all(
+    selectedPlaces.map(async (place, index) => {
+      try {
+        const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripPlanId}/detail`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId || 1,
+            trip_day: 1,
+            place_name: place.name,
+            place_name_x: place.location.lat,
+            place_name_y: place.location.lng,
+            place_id: place.place_id,
+            memo: null,
+            memo_type: "love",
+            order_no: index + 1,
+            review_id: null,
+          }),
+        });
 
-    try {
-      await Promise.all(
-        selectedPlaces.map(async (place, index) => {
-          const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripPlanId}/detail`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              user_id: 1,
-              trip_day: 1,
-              place_name: place.name,
-              place_name_x: place.location.lat,
-              place_name_y: place.location.lng,
-              place_id: place.place_id,
-              memo: null,
-              memo_type: "love",
-              order_no: index + 1,
-              review_id: null,
-            }),
-          });
+        const result = await response.json();
 
-          if (response.ok) {
-            console.log("장소 저장 성공:", place.name);
-          } else {
-            console.error("장소 저장 실패:", response.statusText);
-          }
-        })
-      );
+        if (response.ok && result.success) {
+          console.log("장소 저장 성공:", place.name);
+          // 반환된 trip_plan_detail_id와 order_no를 place 객체에 추가
+          return { ...place, order_no: result.data.order_no, trip_plan_detail_id: result.data.trip_plan_detail_id };
+        } else {
+          console.error("장소 저장 실패:", result.message || response.statusText);
+          return null;
+        }
+      } catch (error) {
+        console.error("장소 추가 중 오류 발생: ", error);
+        return null;
+      }
+    })
+  );
 
-    console.log("모든 장소가 성공적으로 추가되었습니다.");
-    navigate('/planning');
-    } catch (error) {
-      console.error("장소 추가 중 오류 발생: ", error)
-    }
-      
-    setIsDateSelectOpen(false)
-    onClose()
-  }
+  // 성공적으로 저장된 장소만 Redux에 추가
+  const successfulPlaces = updatedPlacesWithId.filter(place => place !== null);
+
+  dispatch(addTripData({
+    tripData: tripDataWithId,
+    places: successfulPlaces, // Redux에 저장할 장소 목록에 trip_plan_detail_id가 포함된 상태로 전달
+  }));
+
+  console.log("모든 장소가 성공적으로 추가되었습니다.");
+  navigate('/planning');
+  setIsDateSelectOpen(false);
+  onClose();
+};
+
 
   return (
     <>

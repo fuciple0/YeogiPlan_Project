@@ -4,46 +4,49 @@ import dayjs from 'dayjs';
 import styled from 'styled-components';
 import InviteEmailModal from '../components/InviteEmailModal';
 import AddPlacesModal from '../components/AddPlacesModal';
-import { updateTripData, addPlace, updatePlaceOrder } from '../store/placeSlice';
+import { updateTripData, addPlace } from '../store/placeSlice';
 import EditTripModal from '../components/Planning/EditTripModal';
+import MapComponent from '../components/Planning/MapComponent';
+import { LoadScript } from '@react-google-maps/api'; // LoadScript를 import
 
 const Planning = () => {
   const dispatch = useDispatch();
-  
-  // Redux에서 tripData와 selectedPlaces 가져오기
-  const tripData = useSelector((state) => state.places.tripData);
-  const selectedPlaces = useSelector((state) => state.places.selectedPlaces);
 
-  // userSlice에서 user_id 가져오기
+  const tripData = useSelector((state) => state.places.tripData);
+  const selectedPlaces = useSelector((state) => state.places.selectedPlaces || []);
   const userId = useSelector((state) => state.user.userInfo.userId);
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isAddPlacesModalOpen, setIsAddPlacesModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
   const [currentDay, setCurrentDay] = useState(null);
-  const [isEditing, setIsEditing] = useState(false); // 편집 모드 상태
 
-  // tripData로부터 여행 정보 상태 관리
-  const [title, setTitle] = useState(tripData.tripTitle || '');
-  const [destination, setDestination] = useState(tripData.destination || '');
-  const [startDate, setStartDate] = useState(tripData.startDate);
-  const [endDate, setEndDate] = useState(tripData.endDate);
+  useEffect(() => {
+    // Redux 상태 출력 (디버깅용)
+    if (selectedPlaces.length > 0) {
+      console.log("Redux 상태 - selectedPlaces 확인:");
+      selectedPlaces.forEach((dayPlaces, dayIndex) => {
+        console.log(`Day ${dayIndex + 1}:`);
+        dayPlaces?.forEach((place, placeIndex) => {
+          console.log(`  장소 ${placeIndex + 1} - trip_plan_detail_id:`, place.trip_plan_detail_id);
+          console.log(`  장소 정보:`, place);
+        });
+      });
+    } else {
+      console.log("selectedPlaces가 비어 있거나 정의되지 않았습니다.");
+    }
+  }, [selectedPlaces]);
 
-  // // tripData가 변경될 때마다 컴포넌트 상태를 업데이트
-  // useEffect(() => {
-  //   setTitle(tripData.tripTitle);
-  //   setStartDate(tripData.startDate);
-  //   setEndDate(tripData.endDate);
-  // }, [tripData.tripTitle, tripData.startDate, tripData.endDate]);
-  
-  // 여행 날짜 범위에 따른 DAY 배열 생성
+  const handleInviteButtonClick = () => setIsInviteModalOpen(true);
+  const handleInviteModalClose = () => setIsInviteModalOpen(false);
+  const openAddPlacesModal = (dayIndex) => { setCurrentDay(dayIndex); setIsAddPlacesModalOpen(true); };
+  const closeAddPlacesModal = () => { setIsAddPlacesModalOpen(false); setCurrentDay(null); };
+
   const generateDays = () => {
     if (!tripData.startDate || !tripData.endDate) return [];
     const start = dayjs(tripData.startDate);
     const end = dayjs(tripData.endDate);
     const days = [];
-
     for (let i = 0; start.add(i, 'day').isBefore(end) || start.add(i, 'day').isSame(end, 'day'); i++) {
       days.push(`DAY ${i + 1}`);
     }
@@ -52,103 +55,53 @@ const Planning = () => {
 
   const days = generateDays();
 
-  const handleInviteButtonClick = () => {
-    setIsInviteModalOpen(true);
+ // 여행 제목, 시작 날짜, 종료 날짜 수정 핸들러
+ const handleTripUpdate = async (updatedData) => {
+
+  // 필수 필드들을 포함하여 서버가 요구하는 형식에 맞춰 업데이트
+  const dataToUpdate = {
+    trip_plan_title: updatedData.tripTitle,
+    start_date: updatedData.startDate,
+    end_date: updatedData.endDate,
+    destination: tripData.destination || "",  // 기존 destination 사용
+    route_shared: tripData.route_shared || "private"  // 기본값을 설정하거나, 필요에 따라 수정
   };
 
-  const handleInviteModalClose = () => {
-    setIsInviteModalOpen(false);
-  };
-
-  const openAddPlacesModal = (dayIndex) => {
-    setCurrentDay(dayIndex);
-    setIsAddPlacesModalOpen(true);
-  };
-
-  const closeAddPlacesModal = () => {
-    setIsAddPlacesModalOpen(false);
-    setCurrentDay(null);
-  };
-
-  // // 편집 버튼을 눌렀을 때 장소 수정
-  // const handleEditButtonClick = () => {
-  //   setIsEditing(true);
-  // };
-
-  const handleSaveTripData = async (updatedData) => {
-    const { trip_plan_id, route_shared } = tripData;
-    const { tripTitle, startDate, endDate } = updatedData; // updatedData에서 값 가져오기
-
-    console.log("수정할 trip data:", {
-      trip_plan_title: tripTitle,
-      destination: tripData.destination,
-      start_date: startDate,
-      end_date: endDate,
-      route_shared: route_shared,
+  try {
+    const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripData.trip_plan_id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dataToUpdate),
     });
 
-    try {
-      const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${trip_plan_id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trip_plan_title: tripTitle,
-          destination: tripData.destination,
-          start_date: startDate,
-          end_date: endDate,
-          route_shared,
-        }),
-      });
-
-      const result = await response.json();
-      if (response.ok && result.success) {
-        dispatch(updateTripData(result.data));
-        setTitle(result.data.trip_plan_title);
-        setStartDate(result.data.start_date);
-        setEndDate(result.data.end_date);
-
-        console.log("업데이트된 tripTitle:", result.data.trip_plan_title);
-        console.log("업데이트된 startDate:", result.data.start_date);
-        console.log("업데이트된 endDate:", result.data.end_date);
-
-      } else {
-        console.error("여행 일정 수정 실패: ", result.message || "Unknown error");
-      }
-    } catch (error) {
-      console.error("여행 일정 수정 중 오류 발생: ", error);
+    if (!response.ok) {
+      throw new Error("여행 정보 업데이트 실패");
     }
-    setIsEditModalOpen(false);
-  };
+
+    const result = await response.json();
+    if (result.success) {
+      // Redux 상태 업데이트
+      dispatch(updateTripData(updatedData));
+    }
+  } catch (error) {
+    console.error("여행 정보 업데이트 중 오류 발생:", error);
+  }
+};
 
   const handlePlaceAdd = async (newPlaces) => {
     const { trip_plan_id } = tripData;
-  
     if (!trip_plan_id) {
       console.error("trip_plan_id가 정의되지 않았습니다.");
       return;
     }
-  
-    // 현재 dayIndex에 있는 장소 수 확인
+
     const currentOrderStart = selectedPlaces[currentDay]?.length || 0;
-  
-    // 선택된 장소를 Redux 상태에 추가
-    newPlaces.forEach((place, index) => {
-      const order_no = currentOrderStart + index + 1; // 기존 장소 수에 새로운 인덱스를 더해 order_no 설정
-      dispatch(addPlace({ dayIndex: currentDay, newPlace: { ...place, order_no } }));
-    });
-  
-    // 서버에 장소 추가 요청을 보냄
-    await Promise.all(
+
+    const updatedPlacesWithId = await Promise.all(
       newPlaces.map(async (place, index) => {
-        const order_no = currentOrderStart + index + 1; // DB 저장을 위한 order_no 설정
-        const tripDay = currentDay + 1; // trip_day는 DAY가 1부터 시작하므로 currentDay + 1로 설정
-  
-        console.log("장소 추가 시도:", {
-          trip_day: tripDay,
-          place_name: place.name,
-          order_no: order_no,
-        });
-  
+        const order_no = currentOrderStart + index + 1;
+        const tripDay = currentDay + 1;
+
         try {
           const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${trip_plan_id}/detail`, {
             method: 'POST',
@@ -157,7 +110,7 @@ const Planning = () => {
             },
             body: JSON.stringify({
               user_id: userId || 1,
-              trip_day: tripDay, // currentDay + 1 값을 사용하여 trip_day 설정
+              trip_day: tripDay,
               place_name: place.name,
               place_name_x: place.location.lat,
               place_name_y: place.location.lng,
@@ -168,76 +121,78 @@ const Planning = () => {
               review_id: null,
             }),
           });
-  
+
           const result = await response.json();
-          console.log("서버 응답 결과:", result);
-  
-          if (!response.ok || !result.success) {
-            console.error("장소 추가 실패:", result.message || response.statusText);
+          console.log("Server response:", result);
+
+          if (response.ok && result.success) {
+            return { ...place, order_no, trip_plan_detail_id: result.data.trip_plan_detail_id };
           } else {
-            console.log("장소 추가 성공:", place.name);
+            console.error("장소 추가 실패:", result.message || response.statusText);
+            return null;
           }
         } catch (error) {
           console.error("장소 추가 중 오류 발생:", error);
+          return null;
         }
       })
     );
-  
+
+    const successfulPlaces = updatedPlacesWithId.filter(place => place !== null);
+    successfulPlaces.forEach((place) => {
+      console.log("Redux에 추가할 장소 데이터:", place);
+      dispatch(addPlace({ dayIndex: currentDay, newPlace: place }));
+    });
+
     closeAddPlacesModal();
   };
 
   return (
     <Container>
-      <TripInfo>
-        <TripTitle>{tripData.tripTitle || '여행 제목'}</TripTitle>
+      <LeftColumn>
+        <TripInfo>
+          <TripTitle>{tripData.tripTitle || '여행 제목'}</TripTitle>
           <TripDestination>{tripData.destination || '목적지 정보 없음'}</TripDestination>
           <TripDates>
             {dayjs(tripData.startDate).format('YYYY.MM.DD')} - {dayjs(tripData.endDate).format('MM.DD')}
           </TripDates>
           <ButtonContainer>
             <EditButton onClick={() => setIsEditModalOpen(true)}>수정</EditButton>
-            <InviteButton onClick={() => setIsInviteModalOpen(true)}>+ 일행초대</InviteButton>
+            <InviteButton onClick={handleInviteButtonClick}>+ 일행초대</InviteButton>
           </ButtonContainer>
-      </TripInfo>
+        </TripInfo>
 
-      {/* 각 DAY별 일정 목록 */}
-      {days.map((day, dayIndex) => (
-        <div key={dayIndex}>
-          <h2>{day}</h2>
-          <PlaceList>
-            {(Array.isArray(selectedPlaces[dayIndex]) ? selectedPlaces[dayIndex] : []).map((place, index) => (
-              <PlaceItem key={place.place_id}>
-                <OrderNumber>{index + 1}</OrderNumber>
-                <PlaceContent>
-                  <PlaceTitle>{place.name} 
-                  </PlaceTitle>
-                  {isEditing && (
-                  <>
-                    <MoveButton onClick={() => handleMovePlace(place.place_id, 'up')}>↑</MoveButton>
-                    <MoveButton onClick={() => handleMovePlace(place.place_id, 'down')}>↓</MoveButton>
-                    <DeleteButton onClick={() => handleDeletePlace(place.place_id)}>삭제</DeleteButton>
-                  </>
-                )}
-                </PlaceContent>
-              </PlaceItem>
-            ))}
-          </PlaceList>
-          <AddPlaceButton onClick={() => openAddPlacesModal(dayIndex)}>+ 장소 추가</AddPlaceButton>
-        </div>
-      ))}
+        {days.map((day, dayIndex) => (
+          <div key={dayIndex}>
+            <h2>{day}</h2>
+            <PlaceList>
+              {(selectedPlaces[dayIndex] || []).map((place, index) => (
+                <PlaceContainer key={place.place_id}>
+                  <OrderNumber>{place.order_no}</OrderNumber>
+                  <PlaceItem>
+                    <PlaceContent>{place.name}</PlaceContent>
+                  </PlaceItem>
+              </PlaceContainer>
+              ))}
+            </PlaceList>
+            <AddPlaceButton onClick={() => openAddPlacesModal(dayIndex)}>+ 장소 추가</AddPlaceButton>
+          </div>
+        ))}
+      </LeftColumn>
 
-      {/* EditTripModal 호출 */}
+      <RightColumn>
+        <MapWrapper>
+          <MapComponent selectedPlaces={selectedPlaces}/>
+        </MapWrapper>
+      </RightColumn>
+
       <EditTripModal
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        tripData={{ tripTitle: title, startDate, endDate }}
-        onSave={handleSaveTripData}
-      />      
-
-      {isInviteModalOpen && (
-        <InviteEmailModal open={isInviteModalOpen} onClose={handleInviteModalClose} />
-      )}
-
+        tripData={tripData}
+        onSave={handleTripUpdate}  // 수정 사항을 저장할 때 handleTripUpdate 함수 호출
+      />
+      {isInviteModalOpen && <InviteEmailModal open={isInviteModalOpen} onClose={handleInviteModalClose} />}
       {isAddPlacesModalOpen && (
         <AddPlacesModal 
           isOpen={isAddPlacesModalOpen} 
@@ -251,9 +206,50 @@ const Planning = () => {
 
 export default Planning;
 
+// 스타일 컴포넌트들
+
 const Container = styled.div`
-  padding: 20px;
-  position: relative;
+  display: flex;
+  width: 100%;
+  padding: 60px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 20px;
+  }  
+`;
+
+const LeftColumn = styled.div`
+  flex: 0.6;
+  padding-right: 20px;
+
+  @media (max-width: 768px) {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 0;
+    margin-bottom: 20px;
+  }  
+`;
+
+const RightColumn = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 50vh;
+  }  
+`;
+
+const MapWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+
+  @media (max-width: 768px) {
+    height: 100%;
+  }  
 `;
 
 const TripInfo = styled.div`
@@ -293,7 +289,6 @@ const EditButton = styled.button`
   border-radius: 20px;
   font-size: 14px;
   cursor: pointer;
-  margin-top: 10px;
 
   &:hover {
     background-color: #e87a00;
@@ -339,6 +334,12 @@ const AddPlaceButton = styled.button`
   }
 `;
 
+const PlaceContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
 const PlaceList = styled.div`
   display: flex;
   flex-direction: column;
@@ -346,19 +347,18 @@ const PlaceList = styled.div`
 `;
 
 const PlaceItem = styled.div`
-  display: flex;
-  width: 300px;
-  align-items: center;
+  flex: 1;
   background-color: #f9f9f9;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
+  min-height: 50px;
 `;
 
 const OrderNumber = styled.div`
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   background-color: #007bff;
   color: white;
   font-weight: bold;
@@ -367,40 +367,10 @@ const OrderNumber = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  position: absolute;
-  left: -40px;
 `;
 
 const PlaceContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  margin-left: 16px;
-`;
-
-const PlaceTitle = styled.div`
+  font-size: 16px;
   font-weight: bold;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const MoveButton = styled.button`
-  background-color: #00b5e2;
-  color: white;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-`;
-
-
-const DeleteButton = styled.button`
-  background-color: red;
-  color: white;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-left: 10px;
+  color: #333;
 `;

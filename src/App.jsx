@@ -15,6 +15,7 @@ import SingUp from './pages/SingUp';
 import Login from './pages/Login'; // Login 컴포넌트 import
 import { useDispatch } from 'react-redux';
 import { setUser } from './store/userSlice';
+import ProtectedRoute from './utils/ProtectedRoute';
 
 
 // AppContainer: 페이지 전체를 감싸는 컨테이너로, 화면 높이를 채우기 위해 min-height를 설정합니다.
@@ -55,8 +56,19 @@ const App = () => {
           <MainContent>
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/planning" element={<Planning />} />
-              <Route path="/talk" element={<Talk />} />
+              <Route 
+                path="/planning" element={
+                <ProtectedRoute>
+                <Planning />
+                </ProtectedRoute>
+                } />
+              
+              <Route 
+                path="/talk" element={
+                <ProtectedRoute>
+                    <Talk />
+                </ProtectedRoute>
+                } />
               <Route path="/mypage" element={<Mypage />} />
               <Route path="/signup" element={<SingUp />} />
               <Route path="/login" element={<Login />} /> {/* 로그인 페이지 라우터 추가 */}

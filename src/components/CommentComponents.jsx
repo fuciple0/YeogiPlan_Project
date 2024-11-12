@@ -1,17 +1,39 @@
-// CommentComponents.jsx
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import defaultProfileImage from '../assets/user_profile.png'; 
-import { useSelector } from 'react-redux'; 
 
-
-const CommentComponents = ({ comments,userInfo, onCommentSubmit }) => {
+const CommentComponents = ({ comments, userInfo, onCommentSubmit }) => {
   const [commentText, setCommentText] = useState("");
-
+  const [replyText, setReplyText] = useState(""); // 대댓글 입력 필드
+  const [replyTo, setReplyTo] = useState(null); // 대댓글을 작성 중인 comment_id
 
   const formatDate = (isoString) => {
     const date = new Date(isoString);
     return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  };
+
+
+  
+  const ReplyProfileImage = ({ profilePhoto }) => {
+    const imageURL = profilePhoto 
+      ? `http://15.164.142.129:3001/${profilePhoto.replace(/\\/g, "/")}` 
+      : defaultProfileImage;
+  
+    return (
+      <img 
+        src={imageURL} 
+        alt="댓글 프로필 이미지" 
+        style={{ width: 30, height: 30, borderRadius: '50%', marginLeft: 40 }} 
+      />
+    );
+  };
+
+  const handleReplySubmit = (parent_id) => {
+    if (replyText.trim()) {
+      onCommentSubmit(replyText, parent_id); // 대댓글 전송
+      setReplyText(""); // 입력 필드 초기화
+      setReplyTo(null); // 대댓글 입력창 닫기
+    }
   };
 
   return (
@@ -29,33 +51,70 @@ const CommentComponents = ({ comments,userInfo, onCommentSubmit }) => {
             setCommentText(""); // 입력 필드 초기화
           }}
         >
-          답글달기
+          댓글 작성
         </ReplyButton>
       </CommentContainer>
+      
       <CommentList>
         {comments.map((comment) => (
-          <CommentItem key={comment.comment_id}>
-            <ReplyProfileImage src={comment.user?.profile_photo || defaultProfileImage} alt="프로필 이미지" />
-            <CommentContent>
-              <CommentHeader>
-                <CommentUser>{comment.user?.nickname || userInfo.nickname}</CommentUser>
-              </CommentHeader>
-              <CommentText>{comment.contents}</CommentText>
-              <CommentFooter>
-              <CommentTime>{formatDate(comment.comment_at)}</CommentTime>
-           
-            <Divider /> {/* 구분선을 타임 밑에 추가 */}
-            </CommentFooter>
-            </CommentContent>
-          </CommentItem>
+          <>
+            {/* 원 댓글 */}
+            <CommentItem key={comment.comment_id}>
+              <ReplyProfileImage profilePhoto={comment.profile_photo} />
+              <CommentContent>
+                <CommentHeader>
+                  <CommentUser>{comment.nickname}</CommentUser>
+                </CommentHeader>
+                <CommentText>{comment.contents}</CommentText>
+                <CommentFooter>
+                  <CommentTime>{formatDate(comment.comment_at)}</CommentTime>
+                  <ReplyButton2 onClick={() => setReplyTo(comment.comment_id)}>
+                    답글
+                  </ReplyButton2>
+                </CommentFooter>
+
+                {/* 대댓글 입력창 */}
+                {replyTo === comment.comment_id && (
+                  <ReplyInputContainer>
+                    <ReplyInput
+                      type="text"
+                      placeholder="답글을 입력하세요"
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                    />
+                    <SubmitReplyButton onClick={() => handleReplySubmit(comment.comment_id)}>
+                      작성
+                    </SubmitReplyButton>
+                  </ReplyInputContainer>
+                )}
+              </CommentContent>
+            </CommentItem>
+
+            {/* 대댓글 렌더링 */}
+            {comments
+              .filter((reply) => reply.parent_id === comment.comment_id)
+              .map((reply) => (
+                <CommentItem key={reply.comment_id} style={{ marginLeft: '40px' }}>
+                  <ReplyProfileImage profilePhoto={reply.user?.profile_photo || defaultProfileImage} alt="프로필 이미지" />
+                  <CommentContent>
+                    <CommentHeader>
+                      <CommentUser>{comment.nickname }</CommentUser>
+                    </CommentHeader>
+                    <CommentText>{reply.contents}</CommentText>
+                    <CommentFooter>
+                      <CommentTime>{formatDate(reply.comment_at)}</CommentTime>
+                    </CommentFooter>
+                  </CommentContent>
+                </CommentItem>
+              ))}
+          </>
         ))}
       </CommentList>
     </>
   );
 };
+
 export default CommentComponents;
-
-
 
 
 // 스타일 컴포넌트들
@@ -85,6 +144,16 @@ const ReplyButton = styled.button`
   color: #fff;
   border: none;
   padding: 8px 16px;
+  border-radius: 4px;
+  margin-left: 10px;
+  cursor: pointer;
+`;
+
+const ReplyButton2 = styled.button`
+  /* background-color: #507DBC; */
+  color: #111010;
+  border: none;
+  padding: 6px 12px;
   border-radius: 4px;
   margin-left: 10px;
   cursor: pointer;
@@ -138,11 +207,26 @@ const CommentTime = styled.span`
   margin-top: 4px 0 0 0;
 `;
 
-const Divider = styled.hr`
+const ReplyInputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  margin-left: 40px;
+`;
+
+const ReplyInput = styled.input`
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+`;
+
+const SubmitReplyButton = styled.button`
+  background-color: #507dbc;
+  color: #fff;
   border: none;
-  border-top: 1px solid #eee;
-  width: 80%; /* 원하는 너비로 조절 */
-  display: inline-block; /* inline-block으로 설정하여 크기 조정 */
-  margin-top: 4px;
-  margin-left: 0; /* 시간을 기준으로 왼쪽 정렬 */
+  padding: 6px 12px;
+  border-radius: 4px;
+  margin-left: 8px;
+  cursor: pointer;
 `;

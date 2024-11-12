@@ -41,8 +41,9 @@ const popularDestinations = [
 ];
 
 const howAboutThis = [
+
   { name: '천지연폭포', imageUrl: waterfall, location: '제주 서귀포시' },
-  { name: '인천공항', imageUrl: incheonAirport, location: '인천광역시 중구' },
+  { name: '인천공항', imageUrl: incheonAirport, location: '인천광역시 중구', place_id: 'ChIJWfpeOoOaezUR1L5cy5agS40' },
   { name: '한라산', imageUrl: hanlasan, location: '제주 서귀포시' },
   { name: '첨성대', imageUrl: chumsungdae, location: '경북 경주시' },
 ];
@@ -166,4 +167,3 @@ const RecommendGrid = styled.div`
   flex-wrap: wrap;
   margin-top: 20px;
 `;
-
