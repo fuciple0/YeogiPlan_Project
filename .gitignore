@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # API 키가 포함된 파일 추가
-.mapSlice
+.mapSlice.js
