@@ -182,13 +182,24 @@ const SingUp = () => {
 
             if (response.ok) {
                 alert(data.message);
+
+                // 사용자 정보를 로컬 스토리지에 저장
+                localStorage.setItem('accessToken', data.token);
+                localStorage.setItem('userInfo', JSON.stringify({
+                    userId: data.userId,
+                    email: formData.email,
+                    nickname: formData.nickname,
+                    profile_photo: `http://15.164.142.129:3001/${data.user.profile_photo}`, // 올바른 경로로 수정
+                    role: 'member'
+                }));
+
                 // Redux에 사용자 정보 저장
                 dispatch(setUser({
                     userInfo: {
                         userId: data.userId,
                         email: formData.email,
                         nickname: formData.nickname,
-                        profile_photo: `http://15.164.142.129:3001/${data.user.profile_photo}`, // 올바른 경로로 수정
+                        profile_photo: `http://15.164.142.129:3001/${data.user.profile_photo}`,
                         role: 'member'
                     },
                     token: data.token,
