@@ -55,11 +55,11 @@ const PostComponents = ({ posts = [] }) => {
       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {
 
       // 전송하려는 데이터를 콘솔에 출력
-      console.log("전송 데이터:", {
-      user_id: userInfo.userId,
-      contents: commentText,
-      parent_id: null,
-    });
+    //   console.log("전송 데이터:", {
+    //   user_id: userInfo.userId,
+    //   contents: commentText,
+    //   parent_id: null,
+    // });
 
         method: 'POST',
         headers: {
