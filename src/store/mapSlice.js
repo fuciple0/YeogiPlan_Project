@@ -2,7 +2,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-   // API 키 하드코딩
+   "22"// API 키 하드코딩
 };
 
 // Slice 정의
