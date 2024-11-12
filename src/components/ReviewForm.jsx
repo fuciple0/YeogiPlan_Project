@@ -28,7 +28,7 @@ const ReviewForm = ({ onSubmit, onCancel, tripPlans = [], placeId, placeName }) 
     }
 
     const data = {
-        // trip_plan_title: selectedTripPlan,
+        trip_plan_title: selectedTripPlan,
         place_id: placeId,
         place_name: placeName,
         rating: rating,

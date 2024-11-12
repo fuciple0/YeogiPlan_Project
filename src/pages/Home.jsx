@@ -166,4 +166,3 @@ const RecommendGrid = styled.div`
   flex-wrap: wrap;
   margin-top: 20px;
 `;
-
