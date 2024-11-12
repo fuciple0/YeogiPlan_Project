@@ -28,28 +28,35 @@ const fetchPosts = async (page, limit) => {
       // setPagination(responseData.pagination); // 페이지네이션 데이터 저장
     } else {
       console.error("게시글 목록을 가져오는 데 실패했습니다.");
+      return { posts: [], pagination: { totalPages: 1 } };
     }
   } catch (error) {
     console.error("Error:", error);
-    return { posts: [], pagination: {} };
+    return { posts: [], pagination: { totalPages: 1 } };
   }
 };
 
 
 // 게시글 작성
   const TalkComponent = ({ onAddPost }) => {
-  const [posts, setPosts] = useState([]);
-  const [page, setPage] = useState(1); // 현재 페이지 번호 상태
-  const [limit] = useState(10); // 페이지당 게시글 수 상태
-  const [pagination, setPagination] = useState({}); // 페이지네이션 데이터 상태
-  const userInfo = useSelector((state) => state.user.userInfo);
+    const [posts, setPosts] = useState([]);
+    const [page, setPage] = useState(1); // 현재 페이지 번호 상태
+    const [limit] = useState(10); // 페이지당 게시글 수 상태
+    const [pagination, setPagination] = useState({ totalPages: 1 }); // 페이지네이션 초기값 설정
+    const userInfo = useSelector((state) => state.user.userInfo); // 리덕스에서 값 받아오기
+  
+// 받아온 값 확인
+console.log("Redux에서 받아온 userInfo:", userInfo);
+console.log("userInfo.userId:", userInfo?.userId); // userId 값 확인
 
+// 게시글 추가 함수
   const addPost = useCallback(async (title, content) => {
     const requestBody = {
       user_id: userInfo.userId,
       talk_title: title,
       talk_message: content,
-      };
+      tag:null
+    };
 
     try {
       console.log("전송할 데이터:", requestBody);
@@ -72,8 +79,7 @@ const fetchPosts = async (page, limit) => {
         };
         console.log("새로운 게시글:", newPost);
         setPosts((prevPosts) => [newPost, ...prevPosts]);
-        // fetchPosts(page, limit, setPosts, setPagination);
-       } else {
+      } else {
         console.error("게시글 작성에 실패했습니다.");
       }
     } catch (error) {
@@ -81,8 +87,8 @@ const fetchPosts = async (page, limit) => {
     }
   }, [userInfo]);
 
-  // 페이지 로드 시 게시글 목록 불러오기
-  useEffect(() => {
+   // 페이지 로드 시 게시글 목록 불러오기
+   useEffect(() => {
     const loadPosts = async () => {
       const { posts, pagination } = await fetchPosts(page, limit);
       setPosts(posts);
@@ -91,34 +97,35 @@ const fetchPosts = async (page, limit) => {
     loadPosts();
   }, [page, limit]);
 
+  // `onAddPost` 콜백 설정
   useEffect(() => {
     if (onAddPost) onAddPost(addPost);
   }, [addPost, onAddPost]);
 
   // 페이지 변경 핸들러
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
+    const totalPages = pagination.totalPages || 1;
+    if (newPage >= 1 && newPage <= totalPages) {
       setPage(newPage);
     }
   };
 
  
 
-  // PostComponents로 posts 데이터를 전달하여 렌더링
-  return (
+   // 게시글 목록 렌더링
+   return (
     <>
-      {/* 게시글 목록 렌더링 */}
       <PostComponents posts={posts} />
       {/* 페이지네이션 컨트롤 */}
-    <PaginationContainer>
-      <PaginationButton onClick={() => handlePageChange(page - 1)} disabled={page <= 1}>
-        이전
-      </PaginationButton>
-      <PageInfo>{page} / {pagination.totalPages}</PageInfo>
-      <PaginationButton onClick={() => handlePageChange(page + 1)} disabled={page >= pagination.totalPages}>
-        다음
-      </PaginationButton>
-    </PaginationContainer>
+      <PaginationContainer>
+        <PaginationButton onClick={() => handlePageChange(page - 1)} disabled={page <= 1}>
+          이전
+        </PaginationButton>
+        <PageInfo>{page} / {pagination.totalPages || 1}</PageInfo>
+        <PaginationButton onClick={() => handlePageChange(page + 1)} disabled={page >= pagination.totalPages}>
+          다음
+        </PaginationButton>
+      </PaginationContainer>
     </>
   );
 };
@@ -138,8 +145,8 @@ const PaginationContainer = styled.div`
 
 // 페이지네이션 버튼 스타일
 const PaginationButton = styled.button`
-  background-color: #507DBC; // 버튼 배경색
-  color: white; // 글자색
+  background-color: #507DBC; /* 버튼 배경색 */
+  color: white; /* 글자색 */
   border: none;
   border-radius: 5px;
   padding: 8px 12px;
@@ -149,15 +156,16 @@ const PaginationButton = styled.button`
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: #507DBC; // 호버 시 배경색
+    background-color: #4a6fa5; /* 호버 시 배경색 */
     font-weight: bold;
   }
 
   &:disabled {
-    background-color: #ccc; // 비활성화 시 배경색
+    background-color: #ccc; /* 비활성화 시 배경색 */
     cursor: not-allowed;
   }
 `;
+
 
 // 현재 페이지와 전체 페이지 정보 스타일
 const PageInfo = styled.span`
@@ -165,8 +173,4 @@ const PageInfo = styled.span`
   font-weight: bold;
   color: #333;
   margin: 0 10px;
-
-  
-
-
 `;
