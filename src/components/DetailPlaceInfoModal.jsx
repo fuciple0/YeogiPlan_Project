@@ -7,6 +7,8 @@ import default_profile from '../assets/user_profile.png';
 import ReviewList from './ReviewList';
 
 const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
+  if (!isOpen || !place) return null;
+
   const [apiData, setApiData] = useState(null);
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -33,7 +35,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
   }, [place]);
 
 
-  if (!isOpen || !place) return null;
+ 
 
   const handleRatingClick = (rate) => {
     setRating(rate);
@@ -110,7 +112,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
               <ReviewForm onSubmit={handleReviewSubmit} onCancel={handleReviewCancel} />
             )}
           </ReviewFormContainer>
-          <ReviewList reviews={reviews} />
+          <ReviewList placeId={place.id} />
         </BottomSection>
       </ModalContent>
     </Overlay>
