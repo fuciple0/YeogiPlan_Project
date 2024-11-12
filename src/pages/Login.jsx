@@ -161,12 +161,14 @@ const Login = () => {
       if (response.ok) {
         // 사용자 정보 구성
         const userInfo = {
-          userId: data.userId,
+          userId: data.user.user_id, // 수정된 부분
           email: formData.email,
-          nickname: data.nickname,
+          nickname: data.user.nickname,
           profile_photo: `http://15.164.142.129:3001/${data.user?.profile_photo}`,
           role: data.role || 'member',
         };
+        console.log("Redux에 저장할 사용자 정보:", userInfo); // Redux에 저장할 데이터 확인
+
 
          // rememberMe 상태에 따라 로컬 또는 세션 스토리지에 저장
           const storage = rememberMe ? localStorage : sessionStorage;
