@@ -11,15 +11,12 @@ import ReviewList from './ReviewList';
 const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
 
   if (!isOpen || !place) return null;
-   // place가 있는지, 그리고 place.id가 유효한 값인지 확인합니다.
-  //  const place_id = 'ChIJWfpeOoOaezUR1L5cy5agS40';
-  //  console.log("DetailPlaceInfoModal에서 전달하는 placeId:", place_id);
+ 
 
   const [apiData, setApiData] = useState(null);
   const [rating, setRating] = useState(4.8);  // 기본 rating 값
   const [hoveredRating, setHoveredRating] = useState(0);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [showReviewList, setShowReviewList] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [placeId, setPlaceId] = useState(null);
 
@@ -52,7 +49,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
   const handleRatingClick = (rate) => {
     setRating(rate);
     setShowReviewForm(true);
-    setShowReviewList(true); 
+    // setShowReviewList(true); 
   };
 
   const handleReviewSubmit = (reviewText, selectedImages) => {
@@ -74,7 +71,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
     setRating(4.8);
   };
 
- 
+  console.log(placeId);
 
   return (
     <Overlay onClick={onClose}>
@@ -136,6 +133,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
           </ReviewFormContainer>
 
           <ReviewList placeId={placeId} />
+          
         </BottomSection>
       </ModalContent>
     </Overlay>

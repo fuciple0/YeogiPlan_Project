@@ -11,11 +11,11 @@ const ReviewForm = ({ onSubmit, onCancel, selectedTripPlan = [], placeId, placeN
 
   const userInfo = useSelector((state) => state.user.userInfo); // Redux에서 userInfo 불러오기
 
-  console.log("프롭스로 전달된 값:");
-  console.log("placeId:", placeId);
-  console.log("placeName:", placeName);
-  console.log("rating:", rating);
-  console.log("userId:", userInfo?.userId); // Redux에서 가져온 userId 확인
+  // console.log("프롭스로 전달된 값:");
+  // console.log("placeId:", placeId);
+  // console.log("placeName:", placeName);
+  // console.log("rating:", rating);
+  // console.log("userId:", userInfo?.userId); // Redux에서 가져온 userId 확인
 
   
 
@@ -60,6 +60,7 @@ const ReviewForm = ({ onSubmit, onCancel, selectedTripPlan = [], placeId, placeN
 
         // 부모 컴포넌트로 결과 전달
         onSubmit(result);
+       
       } else {
         const errorText = await response.text();
         console.error("리뷰 작성 실패:", errorText);
