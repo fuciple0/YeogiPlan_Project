@@ -48,11 +48,9 @@ const PostComponents = ({ posts = [] }) => {
     if (!commentText.trim()) return;
 
     try {
-<<<<<<< HEAD
-      const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talk_id}/comments`, {
-=======
+
       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {
->>>>>>> dev
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { addTripData } from '../store/placeSlice'; // Redux 액션
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { useSelector } from 'react-redux';
 
 const DateSelectModal = ({ open, onClose, onConfirm, selectedPlaces, defaultTripData }) => {
   const [startDate, setStartDate] = useState(null);
@@ -16,6 +17,9 @@ const DateSelectModal = ({ open, onClose, onConfirm, selectedPlaces, defaultTrip
   const [destination, setDestination] = useState(defaultTripData?.destination || ''); // 기본 목적지 설정
 
   const dispatch = useDispatch();
+
+  // userSlice에서 user_id 가져오기
+  const userId = useSelector((state) => state.user.userInfo.userId);    
 
   // defaultTripData가 변경될 때 초기값 설정
   useEffect(() => {
@@ -68,7 +72,7 @@ const DateSelectModal = ({ open, onClose, onConfirm, selectedPlaces, defaultTrip
   
     const tripData = {
       tripTitle,
-      destination: "목적지를 입력해주세요",
+      destination: destination,
       startDate: formattedStartDate,
       endDate: formattedEndDate,
       created_at: createdAt,
@@ -82,7 +86,7 @@ const DateSelectModal = ({ open, onClose, onConfirm, selectedPlaces, defaultTrip
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: 1, // 실제 user_id 값으로 교체
+          user_id: userId || 1, // 실제 user_id 값으로 교체
           trip_plan_title: tripData.tripTitle,
           start_date: tripData.startDate,
           end_date: tripData.endDate,
@@ -92,16 +96,19 @@ const DateSelectModal = ({ open, onClose, onConfirm, selectedPlaces, defaultTrip
       });
   
       const result = await response.json();
-  
+      console.log("Server Response:", result); // 서버 응답 확인
+
       if (response.ok && result.success) {
         const tripPlanId = result.data.trip_plan_id;
         const tripDataWithId = { ...tripData, trip_plan_id: tripPlanId, route_shared: result.data.route_shared};
   
+        console.log("Trip Data with ID:", tripDataWithId); // tripDataWithId 확인
+      
         // Redux에 저장
         dispatch(addTripData({ tripData: tripDataWithId, places: selectedPlaces }));
   
-        // SearchModal의 handleDateSelectConfirm으로 전달
-        onConfirm(tripDataWithId);
+      // BestCardDetailRecommend.jsx의 handleDateSelectConfirm으로 tripDataWithId 전달
+      onConfirm(tripDataWithId);
       } else {
         console.error("여행 데이터 저장 실패:", result.message);
       }
