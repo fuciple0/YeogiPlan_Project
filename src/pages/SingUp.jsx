@@ -186,9 +186,9 @@ const SingUp = () => {
                 // 사용자 정보를 로컬 스토리지에 저장
                 localStorage.setItem('accessToken', data.token);
                 localStorage.setItem('userInfo', JSON.stringify({
-                    userId: data.userId,
+                    userId: data.user.user_id, // 수정된 부분
                     email: formData.email,
-                    nickname: formData.nickname,
+                    nickname: data.user.nickname,
                     profile_photo: `http://15.164.142.129:3001/${data.user.profile_photo}`, // 올바른 경로로 수정
                     role: 'member'
                 }));
