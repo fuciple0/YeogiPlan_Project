@@ -1,129 +1,129 @@
+// src/components/ReviewForm.jsx
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { TbPhotoPlus } from "react-icons/tb";
+import { useSelector } from 'react-redux';
 
-
-const ReviewForm = ({ onSubmit, onCancel,selectedTripPlan=[],  placeId, placeName }) => {
+const ReviewForm = ({ onSubmit, onCancel, selectedTripPlan = [], placeId, placeName, rating }) => {
   const [reviewText, setReviewText] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [rating, setRating] = useState(4); // 기본 평점 설정
- 
 
-    const userInfo = useSelector((state) => state.user.userInfo); // Redux로부터 사용자 정보 가져오기
-    const token = useSelector((state) => state.user.token); // 토큰 가져오기
+  const userInfo = useSelector((state) => state.user.userInfo); // Redux에서 userInfo 불러오기
 
-    const handleImageChange = (event) => {
-      const files = Array.from(event.target.files);
-      setSelectedImages((prevImages) => [...prevImages, ...files]); // 파일 객체로 저장
-  };
+  console.log("프롭스로 전달된 값:");
+  console.log("placeId:", placeId);
+  console.log("placeName:", placeName);
+  console.log("rating:", rating);
+  console.log("userId:", userInfo?.userId); // Redux에서 가져온 userId 확인
 
   
-  const handleSubmit = async () => {
-    
-    if (!token) {
-        console.error("토큰이 없습니다. 로그인 후 다시 시도해 주세요.");
-        return;
-    }
 
+  // 이미지 변경 시 이벤트 핸들러
+  const handleImageChange = (event) => {
+    const files = Array.from(event.target.files).slice(0, 10); // 최대 10개 파일 제한
+    setSelectedImages((prevImages) => [...prevImages, ...files]);
+  };
+
+  // 리뷰 제출 핸들러
+  const handleSubmit = async () => {
     const data = {
-        trip_plan_title: selectedTripPlan,
-        place_id: placeId,
-        place_name: placeName,
-        rating: rating,
-        comment: reviewText,
-        user_id: userInfo.userId,
-        photo_urls: selectedImages.map((image) => URL.createObjectURL(image)), 
+      trip_plan_title: selectedTripPlan[0]?.title || "여행 제목 없음", // 여행 제목 기본값 설정
+      place_id: placeId, // 프롭으로 받은 placeId 사용
+      place_name: placeName, // 프롭으로 받은 placeName 사용
+      rating, // 프롭으로 받은 rating 값 사용
+      comment: reviewText,
+      user_id: userInfo.userId, // userInfo는 Redux 등에서 별도로 설정 필요
+      photo_urls: selectedImages.slice(0, 10).map((image) => URL.createObjectURL(image)), // 이미지 최대 10개로 제한
     };
 
+    // API 호출 전에 데이터 로그 출력
+    console.log("전송할 리뷰 데이터:", data);
+
     try {
-        const response = await fetch('http://15.164.142.129:3001/api/reviews', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`, // Bearer와 토큰을 올바르게 설정
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        });
+      const response = await fetch('http://15.164.142.129:3001/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("리뷰 작성 실패:", errorText);
-            return;
-        }
-
+      if (response.status === 201) {
         const result = await response.json();
         console.log("리뷰 작성 성공:", result);
+
+        // 초기화 작업
         setReviewText('');
         setSelectedImages([]);
         setIsTyping(false);
-        setRating(4);
+
+        // 부모 컴포넌트로 결과 전달
         onSubmit(result);
-
+      } else {
+        const errorText = await response.text();
+        console.error("리뷰 작성 실패:", errorText);
+      }
     } catch (error) {
-        console.error("리뷰 작성 중 오류:", error);
+      console.error("리뷰 작성 중 오류:", error);
     }
-};
+  };
 
-const handleTextChange = (e) => {
+  // 텍스트 변경 핸들러
+  const handleTextChange = (e) => {
     setReviewText(e.target.value);
     setIsTyping(e.target.value.length > 0);
-};
+  };
 
+  return (
+    <FormContainer>
+      <Dropdown>
+        <option value="">여행 제목을 선택하세요</option>
+        {selectedTripPlan.map((plan, index) => (
+          <option key={index} value={plan.title}>{plan.title}</option>
+        ))}
+      </Dropdown>
 
-    return (
-        <FormContainer>
-            <Dropdown>
-            <option value="">여행 제목을 선택하세요</option>
-                {selectedTripPlan.map((plan, index) => (
-                    <option key={index} value={plan.title}>{plan.title}</option>
-                ))}
-            </Dropdown>
+      <TextAreaContainer>
+        {!isTyping && (
+          <>
+            <PlaceholderTextTop>* 직접 경험한 솔직한 리뷰를 남겨주세요.</PlaceholderTextTop>
+            <PlaceholderTextBottom>* 사진은 최대 10장 첨부할 수 있습니다</PlaceholderTextBottom>
+          </>
+        )}
+        <TextArea value={reviewText} onChange={handleTextChange} />
+      </TextAreaContainer>
 
-            <TextAreaContainer>
-                {!isTyping && (
-                    <>
-                        <PlaceholderTextTop>* 직접 경험한 솔직한 리뷰를 남겨주세요.</PlaceholderTextTop>
-                        <PlaceholderTextBottom>* 사진은 최대 몇장 첨부할 수 있습니다</PlaceholderTextBottom>
-                    </>
-                )}
-                <TextArea 
-                    value={reviewText} 
-                    onChange={handleTextChange} 
-                />
-            </TextAreaContainer>
+      <ImageUploadContainer>
+        {selectedImages.length === 0 && (
+          <ImageUploadButton onClick={() => document.getElementById('imageInput').click()}>
+            <TbPhotoPlus size={24} />
+          </ImageUploadButton>
+        )}
+        <ImageInput
+          id="imageInput"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleImageChange}
+        />
+        <ImagePreviewContainer>
+          {selectedImages.slice(0, 10).map((image, index) => (
+            <ImagePreview key={index} src={URL.createObjectURL(image)} alt={`Uploaded ${index + 1}`} />
+          ))}
+        </ImagePreviewContainer>
+      </ImageUploadContainer>
 
-            <ImageUploadContainer>
-                {selectedImages.length === 0 && (
-                    <ImageUploadButton onClick={() => document.getElementById('imageInput').click()}>
-                        <TbPhotoPlus size={24}/>
-                    </ImageUploadButton>
-                )}
-                <ImageInput
-                    id="imageInput"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageChange}
-                />
-               <ImagePreviewContainer>
-                    {selectedImages.map((image, index) => (
-                        <ImagePreview key={index} src={URL.createObjectURL(image)} alt={`Uploaded ${index + 1}`} />
-                    ))}
-                </ImagePreviewContainer>
-            </ImageUploadContainer>
-
-            <ButtonContainer>
-                <CancelButton onClick={onCancel}>취소</CancelButton>
-                <SubmitButton onClick={handleSubmit}>작성완료</SubmitButton>
-            </ButtonContainer>
-
-        </FormContainer>
-    );
+      <ButtonContainer>
+        <CancelButton onClick={onCancel}>취소</CancelButton>
+        <SubmitButton onClick={handleSubmit}>작성완료</SubmitButton>
+      </ButtonContainer>
+    </FormContainer>
+  );
 };
 
 export default ReviewForm;
+
 
 const FormContainer = styled.div`
   margin-top: 20px;

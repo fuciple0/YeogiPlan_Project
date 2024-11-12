@@ -6,18 +6,23 @@ import defaultProfileImage from '../assets/user_profile.png';
 
 
 
+
 // 리뷰 데이터 가져오기
 const fetchPlaceReviews = async (place_id) => {
+  
   try {
     const response = await fetch(`http://15.164.142.129:3001/api/reviews/place/${place_id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        
       },
     });
 
     if (response.ok) {
+      
       const data = await response.json();
+      console.log("서버에서 가져온 데이터:", data);
       return data.reviews || [];
     } else {
       console.error("리뷰 조회에 실패했습니다.");
@@ -47,10 +52,10 @@ const ReviewList = ({ placeId }) => {
 
   return (
     <ReviewContainer>
-      {reviews.map((review, index) => (
-        <ReviewItem key={index}>
+      {reviews.map((review) => (
+        <ReviewItem key={review.review_id}>
           <ProfileSection>
-            <ProfileImage src={review.profile_photo || defaultProfileImage} alt="프로필 이미지" />
+          <ProfileImage src={review.profile_photo ? `http://15.164.142.129:3001/${review.profile_photo}` : defaultProfileImage} alt="프로필 이미지" />
             <NickAndRating>
               <Nickname>{review.username}</Nickname>
               <Rating>
