@@ -6,6 +6,7 @@ import DateSelectModal from './DateSelectModal';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addTripData } from '../store/placeSlice';
+import { useSelector } from 'react-redux';
 
 const BestCardDetailRecommend = ({ item, onClose }) => {
   const [description, setDescription] = useState('');
@@ -16,6 +17,18 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  // userSlice에서 user_id 가져오기
+  const userId = useSelector((state) => state.user.userInfo.userId);  
+
+  // // Redux에서 userId 상태 확인용
+  // useEffect(() => {
+  //   console.log("Redux의 userId:", userId);
+  //   if (!userId) {
+  //     console.warn("Redux에 userId가 없습니다. 로그인 페이지로 이동합니다.");
+  //     navigate('/login');
+  //   }
+  // }, [userId, navigate]);
 
   useEffect(() => {
     const fetchDescription = async () => {
@@ -59,16 +72,16 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
 
   // DateSelectModal에서 날짜 선택 후 확인 버튼 클릭 시 처리 함수
   const handleDateSelectConfirm = async (tripDataWithId) => {
-    console.log("Redux에 저장할 tripData:", tripDataWithId);
-    console.log("Redux에 저장할 selectedPlaces:", selectedPlaces);
+    console.log("Received tripDataWithId:", tripDataWithId); // tripDataWithId 확인
+
+    const tripPlanId = tripDataWithId.trip_plan_id;
+    console.log("tripPlanId:", tripPlanId);
 
     // Redux에 tripData와 선택된 장소들 저장
     dispatch(addTripData({
       tripData: tripDataWithId,
       places: selectedPlaces,
     }));
-
-    const tripPlanId = tripDataWithId.trip_plan_id
 
     try {
       await Promise.all(
@@ -79,7 +92,7 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              user_id: 1,
+              user_id: userId || 1,
               trip_day: 1,
               place_name: place.name,
               place_name_x: place.location.lat,

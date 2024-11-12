@@ -19,20 +19,13 @@ const PostComponents = ({ posts = [] }) => {
     const imageURL = profilePhoto
       ? `http://15.164.142.129:3001/${profilePhoto.replace(/\\/g, "/")}`
       : defaultProfileImage;
-<<<<<<< HEAD
 
-    return (
-      <img
-        src={imageURL}
-        alt="프로필 이미지"
-        style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 10 }}
-=======
       return (
       <img 
         src={imageURL} 
         alt="프로필 이미지" 
         style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 10 }} 
->>>>>>> 33d09560f641141064eac062965f5cee5131a455
+
       />
     );
   };
@@ -55,19 +48,17 @@ const PostComponents = ({ posts = [] }) => {
   const handleCommentSubmit = async (talk_id, commentText) => {
     if (!commentText.trim()) return;
     try {
-<<<<<<< HEAD
+
 
       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {
 
-=======
       // 전송하려는 데이터를 콘솔에 출력
       console.log("전송 데이터:", {
       user_id: userInfo.userId,
       contents: commentText,
       parent_id: null,
     });
-       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talk_id}/comments`, {
->>>>>>> 33d09560f641141064eac062965f5cee5131a455
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
