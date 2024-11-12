@@ -2,7 +2,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    googleMapApiKey: 'AIzaSyBHmojEymbks2VERgqeBFHNw-MbHPBku3g', // API 키 하드코딩
+   // API 키 하드코딩
 };
 
 // Slice 정의
