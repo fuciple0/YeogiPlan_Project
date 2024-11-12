@@ -26,6 +26,7 @@ const PostComponents = ({ posts = [] }) => {
         alt="프로필 이미지" 
         style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 10 }} 
 
+
       />
     );
   };
@@ -48,6 +49,7 @@ const PostComponents = ({ posts = [] }) => {
   const handleCommentSubmit = async (talk_id, commentText) => {
     if (!commentText.trim()) return;
     try {
+
 
 
       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {

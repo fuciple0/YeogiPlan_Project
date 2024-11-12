@@ -6,7 +6,8 @@ import styled from 'styled-components';
 import { logoutUser } from '../store/userSlice';
 import default_profile from '../assets/user_profile.png';
 import ProfileEditModal from '../components/ProfileEditModal';
-import SharedTripStamps from '../components/MyPage/TripStampComponent';
+import SharedTripStamps from '../components/Mypage/MyTripPlan';
+
 
 const Mypage = () => {
   const dispatch = useDispatch();
@@ -58,6 +59,7 @@ const Mypage = () => {
         {activeTab === 'travelLog' ? (
           <TravelLogContent>여행 기록을 보여줄 영역입니다.
             <SharedTripStamps></SharedTripStamps>
+
           </TravelLogContent>
         ) : (
           <ReviewContent>작성한 리뷰를 보여줄 영역입니다.</ReviewContent>
