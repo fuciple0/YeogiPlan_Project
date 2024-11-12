@@ -3,7 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import userReducer from './userSlice';
 import tripReducer from './tripPlanSlice'
 import placeReducer from './placeSlice';  // placeReducer 추가
-import mapReducer from './mapSlice';  // mapStore 추가
+import mapReducer from './mapSlice2';  // mapStore 추가
 
 export const store = configureStore({
   reducer: {
