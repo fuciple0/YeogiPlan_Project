@@ -43,7 +43,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
   const handleReviewSubmit = (reviewText, selectedImages) => {
     const newReview = {
       profileImage: default_profile,
-      nickname: '익명',
+      nickname: userInfo.nickname,
       rating,
       text: reviewText,
       images: selectedImages,

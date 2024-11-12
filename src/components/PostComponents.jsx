@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { FaRegCommentDots } from "react-icons/fa";
 import { useSelector } from 'react-redux';
 import CommentComponents from './CommentComponents';
-import defaultProfileImage from '../assets/user_profile.png'; 
+import defaultProfileImage from '../assets/user_profile.png';
 
 
 
@@ -16,15 +16,16 @@ const PostComponents = ({ posts = [] }) => {
 
   const ProfileImage = ({ profilePhoto }) => {
     // profilePhoto가 null이나 undefined가 아니면 replace를 사용하여 경로 수정
-    const imageURL = profilePhoto 
-      ? `http://15.164.142.129:3001/${profilePhoto.replace(/\\/g, "/")}` 
+    const imageURL = profilePhoto
+      ? `http://15.164.142.129:3001/${profilePhoto.replace(/\\/g, "/")}`
       : defaultProfileImage;
-  
-    return (
+
+      return (
       <img 
         src={imageURL} 
         alt="프로필 이미지" 
         style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 10 }} 
+
       />
     );
   };
@@ -37,26 +38,33 @@ const PostComponents = ({ posts = [] }) => {
   };
 
 
-  const formatDate = (isoString) => {
+    const formatDate = (isoString) => {
     const date = new Date(isoString);
     return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
   };
 
-  
+
   // 댓글 작성 함수
   const handleCommentSubmit = async (talk_id, commentText) => {
     if (!commentText.trim()) return;
-
     try {
 
+
       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${postId}/comments`, {
+
+      // 전송하려는 데이터를 콘솔에 출력
+      console.log("전송 데이터:", {
+      user_id: userInfo.userId,
+      contents: commentText,
+      parent_id: null,
+    });
 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: userInfo.userId, 
+          user_id: userInfo.userId,
           contents: commentText,
           parent_id: null,
         }),
@@ -77,17 +85,13 @@ const PostComponents = ({ posts = [] }) => {
   // 특정 게시글의 댓글 목록 가져오기
   const fetchComments = async (talk_id) => {
     try {
-
-      const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talk_id}/comments`, {
-
-
+        const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talk_id}/comments`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-
-      if (response.ok) {
+       if (response.ok) {
         const responseData = await response.json();
         setCommentsData((prevData) => ({
           ...prevData,
@@ -108,7 +112,7 @@ const PostComponents = ({ posts = [] }) => {
           <PostWrapper key={post.talk_id}>
             {/* 작성자 정보 */}
             <AuthorContainer>
-              
+
               <ProfileImage profilePhoto={post.profile_photo} />
               <Nickname>{post.nickname || "익명"}</Nickname>
             </AuthorContainer>
@@ -116,7 +120,7 @@ const PostComponents = ({ posts = [] }) => {
             {/* 게시글 제목과 내용 */}
             <PostTitle>{post.talk_title}</PostTitle>
             <PostContent>{post.talk_message}</PostContent>
-            
+
 
             {/* 게시글 작성 날짜 및 시간 */}
             <PostDateTime>{formatDate(post.talk_at)}</PostDateTime> {/* 날짜 및 시간 표시 */}

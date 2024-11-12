@@ -90,9 +90,9 @@ const CommentComponents = ({ comments, userInfo, onCommentSubmit }) => {
 
             {/* 대댓글 렌더링 */}
             {comments
-              .filter((comment) => comment.parent_id === comment.comment_id)
+              .filter((reply) => reply.parent_id === comment.comment_id)
               .map((reply) => (
-                <CommentItem key={comment.comment_id} style={{ marginLeft: '40px' }}>
+                <CommentItem key={reply.comment_id} style={{ marginLeft: '40px' }}>
                   <ReplyProfileImage profilePhoto={reply.user?.profile_photo || defaultProfileImage} alt="프로필 이미지" />
                   <CommentContent>
                     <CommentHeader>
