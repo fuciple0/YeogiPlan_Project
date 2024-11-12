@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { TbPhotoPlus } from "react-icons/tb";
 
 
-const ReviewForm = ({ onSubmit, onCancel, tripPlans = [], placeId, placeName }) => {
+const ReviewForm = ({ onSubmit, onCancel,selectedTripPlan=[],  placeId, placeName }) => {
   const [reviewText, setReviewText] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -33,7 +33,7 @@ const ReviewForm = ({ onSubmit, onCancel, tripPlans = [], placeId, placeName }) 
         place_name: placeName,
         rating: rating,
         comment: reviewText,
-        user_id: userInfo.id,
+        user_id: userInfo.userId,
         photo_urls: selectedImages.map((image) => URL.createObjectURL(image)), 
     };
 
@@ -76,7 +76,7 @@ const handleTextChange = (e) => {
         <FormContainer>
             <Dropdown>
             <option value="">여행 제목을 선택하세요</option>
-                {tripPlans.map((plan, index) => (
+                {selectedTripPlan.map((plan, index) => (
                     <option key={index} value={plan.title}>{plan.title}</option>
                 ))}
             </Dropdown>
