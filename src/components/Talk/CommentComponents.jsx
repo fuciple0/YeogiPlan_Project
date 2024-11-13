@@ -7,11 +7,23 @@ const CommentComponents = ({ comments, userInfo, onCommentSubmit }) => {
   const [replyText, setReplyText] = useState(""); // 대댓글 입력 필드
   const [replyTo, setReplyTo] = useState(null); // 대댓글을 작성 중인 comment_id
 
-  const formatDate = (isoString) => {
-    const date = new Date(isoString);
-    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-  };
-
+  
+  
+  
+  const formatDate = (dateString) => {
+    // "2024-11-12T14:05:52.000Z" 형태의 문자열에서 필요한 부분 추출
+     const [datePart, timePart] = dateString.split("T");
+     const [year, month, day] = datePart.split("-");
+     let [hour, minute] = timePart.split(":");
+     
+     // 시간 형식을 12시간제로 변환하고 오전/오후 결정
+     const period = hour >= 12 ? "오후" : "오전";
+     hour = hour % 12 || 12; // 0시를 12시로 변환
+     
+     // 원하는 형식으로 문자열 조합 (초 제외)
+     return `${year}. ${month}. ${day}. ${period} ${hour}:${minute}`;
+   };
+ 
 
   
   const ReplyProfileImage = ({ profilePhoto }) => {
@@ -68,9 +80,9 @@ const CommentComponents = ({ comments, userInfo, onCommentSubmit }) => {
                 <CommentText>{comment.contents}</CommentText>
                 <CommentFooter>
                   <CommentTime>{formatDate(comment.comment_at)}</CommentTime>
-                  <ReplyButton2 onClick={() => setReplyTo(comment.comment_id)}>
+                  {/* <ReplyButton2 onClick={() => setReplyTo(comment.comment_id)}>
                     답글
-                  </ReplyButton2>
+                  </ReplyButton2> */}
                 </CommentFooter>
 
                 {/* 대댓글 입력창 */}

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FaStar, FaCheck, FaPlus } from "react-icons/fa";
+import logo from '../assets/logo.png'; // 로고 이미지 import
+
 
 const RecommendList = ({ places, onSelectPlace }) => {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -30,15 +32,14 @@ const RecommendList = ({ places, onSelectPlace }) => {
         <ListContainer>
             {places.map((place, index) => (
                 <PlaceCard key={place.place_id || index}>
-                    {place.photo && (
-                        <PlaceImage
-                            src={place.photo}
-                            alt={place.name}
-                            onError={(e) => {
-                                e.target.style.display = 'none';
-                            }}
-                        />
-                    )}
+                    {/* photo prop 체크 로직 수정 */}
+                    <PlaceImage
+                        src={place.photo || logo}  // photo가 null이면 로고 이미지 사용
+                        alt={place.name}
+                        onError={(e) => {
+                            e.target.src = logo; // 이미지 로드 실패시에도 로고 표시
+                        }}
+                    />
                     <PlaceDetails>
                         <PlaceTitle>{place.name}</PlaceTitle>
                         <PlaceInfo>
@@ -102,6 +103,13 @@ const PlaceImage = styled.img`
     object-fit: cover;
     border-radius: 4px;
     margin-right: 15px;
+
+    /* 로고 이미지일 경우에만 흑백 필터 적용 */
+    &[src="${logo}"] {
+        filter: grayscale(50%);
+        padding: 24px;
+        border: 1px solid #dcdcdc;
+    }
 `;
 
 const PlaceDetails = styled.div`
@@ -143,5 +151,7 @@ const AddIcon = styled.div`
     margin-right: 12px;
     cursor: pointer;
 `;
+
+
 
 export default RecommendList;

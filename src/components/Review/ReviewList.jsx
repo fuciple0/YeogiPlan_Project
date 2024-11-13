@@ -3,6 +3,7 @@ import React, { useState, useEffect  } from 'react'
 import styled from 'styled-components'
 import { FaStar, FaThumbsUp, FaRegThumbsUp } from 'react-icons/fa'
 import defaultProfileImage from '../assets/user_profile.png'; 
+import DetailPlaceInfoModal from './DetailPlaceInfoModal';
 
 
 
@@ -20,7 +21,6 @@ const fetchPlaceReviews = async (place_id) => {
     });
 
     if (response.ok) {
-      
       const data = await response.json();
       console.log("서버에서 가져온 데이터:", data);
       return data.reviews || [];
@@ -34,19 +34,29 @@ const fetchPlaceReviews = async (place_id) => {
   }
 };
 
+
 // 리뷰 목록 컴포넌트
 const ReviewList = ({ placeId }) => {
   const [reviews, setReviews] = useState([]);
+ 
 
   // 리뷰 데이터 불러오기
   useEffect(() => {
     const loadReviews = async () => {
       const data = await fetchPlaceReviews(placeId);
+      console.log("받아온 리뷰 데이터:", data); // 데이터 확인
       setReviews(data);
-    };
+     };
     loadReviews();
-  }, [placeId]);
+   }, [placeId]);
+  console.log("리뷰 목록 렌더링:", reviews);
 
+
+
+    // // 리뷰 상태 변경 시 로그 출력
+    // useEffect(() => {
+    //   console.log("업데이트된 리뷰 목록:", reviews); // reviews 상태가 업데이트된 후의 데이터를 확인
+    // }, [reviews]);
 
 
 

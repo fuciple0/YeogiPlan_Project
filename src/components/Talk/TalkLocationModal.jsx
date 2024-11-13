@@ -5,9 +5,6 @@ import logoFly from '../assets/talk_img/logo_fly.png';
 
 
 
-
-
-
 const TalkLocationModal = ({ isOpen, onClose, onSelect }) => {
   if (!isOpen) return null;
 

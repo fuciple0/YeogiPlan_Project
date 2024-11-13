@@ -19,7 +19,7 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
   const dispatch = useDispatch();
 
   // userSlice에서 user_id 가져오기
-  const userId = useSelector((state) => state.user.userInfo.userId);  
+  const userId = useSelector((state) => state.user.userInfo.userId);
 
   useEffect(() => {
     const fetchDescription = async () => {
@@ -60,6 +60,7 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
   const handleDateSelectClose = () => {
     setIsDateSelectOpen(false);
   };
+
 
 // DateSelectModal에서 날짜 선택 후 확인 버튼 클릭 시 처리 함수
 const handleDateSelectConfirm = async (tripDataWithId) => {
@@ -104,69 +105,66 @@ const handleDateSelectConfirm = async (tripDataWithId) => {
           };
         } else {
           console.error("장소 저장 실패:", result.message || response.statusText);
+
           return null;
         }
-      } catch (error) {
-        console.error("장소 추가 중 오류 발생: ", error);
-        return null;
-      }
-    })
-  );
+      })
+    );
 
-  // 성공적으로 저장된 장소만 Redux에 추가
-  const successfulPlaces = updatedPlacesWithId.filter(place => place !== null);
+    // 성공적으로 저장된 장소만 Redux에 추가
+    const successfulPlaces = updatedPlacesWithId.filter(place => place !== null);
 
-  dispatch(addTripData({
-    tripData: tripDataWithId,
-    places: successfulPlaces, // Redux에 저장할 장소 목록에 trip_plan_detail_id가 포함된 상태로 전달
-  }));
+    dispatch(addTripData({
+      tripData: tripDataWithId,
+      places: successfulPlaces, // Redux에 저장할 장소 목록에 trip_plan_detail_id가 포함된 상태로 전달
+    }));
 
-  console.log("모든 장소가 성공적으로 추가되었습니다.");
-  navigate('/planning');
-  setIsDateSelectOpen(false);
-  onClose();
-};
+    console.log("모든 장소가 성공적으로 추가되었습니다.");
+    navigate('/planning');
+    setIsDateSelectOpen(false);
+    onClose();
+  };
 
 
   return (
     <>
-    <ModalOverlay onClick={onClose}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
-        <BestCard>
-          <Image src={item.imageUrl} alt={item.name} />
-          <Title>{item.name}</Title>
-          <DescriptionContainer>
-            <Description>{description}</Description>
-          </DescriptionContainer>
-        </BestCard>
-        <RecommendTitle>추천 장소</RecommendTitle>
-        {isLoading ? (
-          <SkeletonList>
-          {[...Array(2)].map((_, index) => (
-              <SkeletonItem key={index}>
-              <SkeletonImage>
-                <Skeleton width="100%" height="100%" />
-              </SkeletonImage>
-              <SkeletonDetails>
-                <Skeleton width="50%" height="20px" /> {/* 장소 이름 */}
-                <Skeleton width="10%" height="20px" /> {/* 별점 */}
-                <Skeleton width="60%" height="20px" /> {/* 주소 */}
-              </SkeletonDetails>
-            </SkeletonItem>
-          ))}
-        </SkeletonList>
-        ) : (
-          <RecommendListContainer>
-            <RecommendList
-              places={places}
-              onSelectPlace={(updatedSelection) => setSelectedPlaces(updatedSelection)} // 장소 선택 시 업데이트 함수 전달
-              selectedItems={selectedPlaces} // 선택된 장소 전달
-            />
-          </RecommendListContainer>
-        )}
-        <AddScheduleButton onClick={handleAddSchedule}>일정 생성하러 가기</AddScheduleButton>
-      </ModalContent>
-    </ModalOverlay>
+      <ModalOverlay onClick={onClose}>
+        <ModalContent onClick={(e) => e.stopPropagation()}>
+          <BestCard>
+            <Image src={item.imageUrl} alt={item.name} />
+            <Title>{item.name}</Title>
+            <DescriptionContainer>
+              <Description>{description}</Description>
+            </DescriptionContainer>
+          </BestCard>
+          <RecommendTitle>추천 장소</RecommendTitle>
+          {isLoading ? (
+            <SkeletonList>
+              {[...Array(2)].map((_, index) => (
+                <SkeletonItem key={index}>
+                  <SkeletonImage>
+                    <Skeleton width="100%" height="100%" />
+                  </SkeletonImage>
+                  <SkeletonDetails>
+                    <Skeleton width="50%" height="20px" /> {/* 장소 이름 */}
+                    <Skeleton width="10%" height="20px" /> {/* 별점 */}
+                    <Skeleton width="60%" height="20px" /> {/* 주소 */}
+                  </SkeletonDetails>
+                </SkeletonItem>
+              ))}
+            </SkeletonList>
+          ) : (
+            <RecommendListContainer>
+              <RecommendList
+                places={places}
+                onSelectPlace={(updatedSelection) => setSelectedPlaces(updatedSelection)} // 장소 선택 시 업데이트 함수 전달
+                selectedItems={selectedPlaces} // 선택된 장소 전달
+              />
+            </RecommendListContainer>
+          )}
+          <AddScheduleButton onClick={handleAddSchedule}>일정 생성하러 가기</AddScheduleButton>
+        </ModalContent>
+      </ModalOverlay>
 
       {/* DateSelectModal - 일정 날짜 선택 모달 */}
       {isDateSelectOpen && (
