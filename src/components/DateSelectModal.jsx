@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { Dialog, DialogActions, Button, TextField } from '@mui/material';
 import dayjs from 'dayjs';
 import { useDispatch } from "react-redux";
-import { addTripData } from '../store/placeSlice'; // Redux 액션
+import { addTripData } from '../store/placeSlice';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useSelector } from 'react-redux';
