@@ -7,29 +7,29 @@ import CommentComponents from './CommentComponents';
 import defaultProfileImage from '../../assets/user_profile.png';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import { fetchComments, handleCommentSubmit, handleCommentIconClick } from '../../services/commentsHelper';
-import { updatePost } from '../../services/postApi';
-import usePostEdit from './usePostEdit'; 
+import { deletePost } from '../../services/postApi';
+import usePostEdit from '../../store/usePostEdit';
 
-  
-  const PostComponents = ({ posts = [] }) => {
+
+  const PostComponents = ({ posts ,setPosts }) => {
   const [activePost, setActivePost] = useState(null);
   const [commentsData, setCommentsData] = useState({});
   const [currentPosts, setCurrentPosts] = useState(posts);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
   const userInfo = useSelector((state) => state.user.userInfo);
-  // const {
-  //   editingPostId,
-  //   updatedTitle,
-  //   updatedMessage,
-  //   handleEdit,
-  //   handleCancelEdit,
-  //   handleSaveEdit,
-  //   setUpdatedTitle,
-  //   setUpdatedMessage,
-  // } = usePostEdit(setPosts);
+  const {
+    editingPostId,
+    updatedTitle,
+    updatedMessage,
+    handleEdit,
+    handleCancelEdit,
+    handleSaveEdit,
+    setUpdatedTitle,
+    setUpdatedMessage,
+  } = usePostEdit(setPosts, userInfo);
 
-  
+
 
 
    const formatDate = (dateString) => {
@@ -53,21 +53,12 @@ import usePostEdit from './usePostEdit';
       ? `http://15.164.142.129:3001/${profilePhoto.replace(/\\/g, "/")}`
       : defaultProfileImage;
         return (
-      <img src={imageURL} alt="프로필 이미지" style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 10 }} />
+      <img src={imageURL} alt="프로필 이미지" 
+      style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 10 }} />
     );
   };
 
- // 게시글 삭제 확인
- const handleDeleteConfirm = async () => {
-    if (selectedPostId) {
-      const isDeleted = await deletePost(selectedPostId);
-      if (isDeleted) {
-        setCurrentPosts(currentPosts.filter((post) => post.talk_id !== selectedPostId));
-      }
-      closeDeleteModal();
-    }
-  };
-
+ 
   // 게시글 삭제 모달
    const openDeleteModal = (talk_id) => {
     setSelectedPostId(talk_id);
@@ -76,73 +67,139 @@ import usePostEdit from './usePostEdit';
   };
 
   const closeDeleteModal = () => {
-    setSelectedPostId(null);
-    setIsDeleteModalOpen(false);
+    setIsDeleteModalOpen(false); 
+    setSelectedPostId(null); 
+  };
+
+
+  const handleDeleteConfirm = async () => {
+    if (selectedPostId) {
+      try {
+        const isDeleted = await deletePost(selectedPostId); // 삭제 API 호출
+        if (isDeleted) {
+          // 상태를 즉시 업데이트하여 UI 반영
+          setCurrentPosts((prevPosts) =>
+            prevPosts.filter((post) => post.talk_id !== selectedPostId)
+          );
+          closeDeleteModal(); // 모달 닫기
+        } else {
+          console.error('게시글 삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('삭제 중 오류 발생:', error);
+      }
+    }
   };
 
 
 
   return (
     <PostsContainer>
-      {posts && posts.length > 0 ? (
-        posts.map((post) => (
-          <PostWrapper key={post.talk_id}>
-            {/* 작성자 정보 */}
-            <AuthorContainer>
-              <ProfileImage profilePhoto={post.profile_photo} />
-              <Nickname>{post.nickname || "익명"}</Nickname>
-                {/* 게시글 작성자와 로그인 사용자 ID가 동일할 때만 삭제 버튼 표시 */}
-                {userInfo.userId === post.user_id && (
-                <DeleteButton onClick={() => openDeleteModal(post.talk_id)}>삭제</DeleteButton>
-              )}
-            </AuthorContainer>
+    {posts && posts.length > 0 ? (
+    posts.map((post) => (
+      <PostWrapper key={post.talk_id}>
+        {/* 작성자 정보 */}
+        <AuthorContainer>
+          <ProfileImage profilePhoto={post.profile_photo} />
+          <Nickname>{post.nickname || "익명"}</Nickname>
 
-            
-               {/* 선택된 태그 표시 */}
-              {post.tag && post.tag.length > 0 && (
-            <ChipContainer>
-              {post.tag.map((tag,index) => (
-                <ChipButton key={index} active>
-                  {tag}
-                </ChipButton>
-              ))}
-            </ChipContainer>)}
+          <ButtonContainer>
+            {userInfo.userId === post.user_id && (
+              <>
+                <DeleteButton onClick={() => openDeleteModal(post.talk_id)}>
+                  삭제
+                </DeleteButton>
+                <EditButton onClick={() => handleEdit(post)}>
+                  수정
+                </EditButton>
+              </>
+            )}
+          </ButtonContainer>
+        </AuthorContainer>
 
-              {/* 게시글 작성 날짜 및 시간 */}
-            <PostDateTime>{formatDate(post.talk_at)}</PostDateTime> {/* 날짜 및 시간 표시 */}
+        {/* 수정 모드 */}
+        {editingPostId === post.talk_id ? (
+          <div>
+            <EditContainer>
+              <EditInput
+                type="text"
+                value={updatedTitle}
+                onChange={(e) => setUpdatedTitle(e.target.value)}
+                placeholder="제목 수정"
+              />
+              <EditTextarea
+                value={updatedMessage}
+                onChange={(e) => setUpdatedMessage(e.target.value)}
+                placeholder="내용 수정"
+              />
+              <EditActions>
+                <EditButton onClick={() => handleSaveEdit(post.talk_id)}>
+                  저장
+                </EditButton>
+                <CancelButton onClick={handleCancelEdit}>취소</CancelButton>
+              </EditActions>
+            </EditContainer>
+          </div>
+        ) : (
+          <>
+            {/* 일반 모드 */}
+            <PostTitle>{post.talk_title}</PostTitle>
+            <PostContent>{post.talk_message}</PostContent>
 
-            
-           {/* 댓글 아이콘 및 댓글 수 */}
+            {/* 선택된 태그 표시 */}
+            {post.tag && post.tag.length > 0 && (
+              <ChipContainer>
+                {post.tag.map((tag, index) => (
+                  <ChipButton key={index} active>
+                    {tag}
+                  </ChipButton>
+                ))}
+              </ChipContainer>
+            )}
+
+            {/* 게시글 작성 날짜 및 시간 */}
+            <PostDateTime>{formatDate(post.talk_at)}</PostDateTime>
+
+            {/* 댓글 아이콘 및 댓글 수 */}
             <DividerContainer>
               <Divider />
               <CommentIconContainer
                 onClick={() =>
-                  handleCommentIconClick(post.talk_id, activePost, setActivePost, (id) =>
-                    fetchComments(id, setCommentsData)
-                  )} >
+                  handleCommentIconClick(
+                    post.talk_id,
+                    activePost,
+                    setActivePost,
+                    (id) => fetchComments(id, setCommentsData)
+                  )
+                }
+              >
                 <FaRegCommentDots />
-                <CommentCount>{commentsData[post.talk_id]?.length || 0}</CommentCount>
+                <CommentCount>{post.comment_count || 0}</CommentCount>
               </CommentIconContainer>
             </DividerContainer>
 
-          {/* 댓글 입력 및 목록 표시 */}
-          {activePost === post.talk_id && (
+            {/* 댓글 입력 및 목록 표시 */}
+            {activePost === post.talk_id && (
               <CommentComponents
                 comments={commentsData[post.talk_id] || []}
-                userInfo={userInfo} // userInfo를 전달
+                userInfo={userInfo}
                 onCommentSubmit={(commentText) =>
-                  handleCommentSubmit(post.talk_id, commentText, userInfo, (id) =>
-                    fetchComments(id, setCommentsData)
+                  handleCommentSubmit(
+                    post.talk_id,
+                    commentText,
+                    userInfo,
+                    (id) => fetchComments(id, setCommentsData)
                   )
                 }
               />
             )}
-          </PostWrapper>
-        ))
-      ) : (
-        <p>게시글이 없습니다.</p>
-      )}
-
+          </>
+        )}
+      </PostWrapper>
+    ))
+  ) : (
+    <p>게시글이 없습니다.</p>
+  )}
      {/* 삭제 확인 모달 */}
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
@@ -171,17 +228,36 @@ const PostWrapper = styled.div`
 const AuthorContainer = styled.div`
   display: flex;
   align-items: center;
-  /* justify-content: space-between;  */
+  justify-content: flex-left; /* 왼쪽 정렬 */
+  gap: 8px; /* 버튼 간격 추가 */
 `;
 
 const DeleteButton = styled.button`
-  background-color: #cdc4c4;
-  color: white;
+  background-color: #bebbbb; /* 빨간색 배경 */
+  color: white; /* 흰색 텍스트 */
   border: none;
   border-radius: 4px;
-  padding: 5px 10px;
+  padding: 7px 12px;
   cursor: pointer;
-  margin-left: auto;
+  &:hover {
+    background-color: #8a8787; /* 호버 효과 */
+  }
+`;
+const EditButton = styled.button`
+  background-color: #507DBC; /* 파란색 배경 */
+  color: white; /* 흰색 텍스트 */
+  border: none;
+  border-radius: 4px;
+  padding:  7px 12px;
+  cursor: pointer;
+  &:hover {
+    background-color: #0056b3; /* 호버 효과 */
+  }
+`;
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: 8px; /* 버튼 간격 */
+  margin-left: auto; /* 오른쪽 정렬 */
 `;
 
 
@@ -202,6 +278,7 @@ const PostTitle = styled.h3`
 
 const PostContent = styled.p`
  margin-left: 20px;
+
 `;
 
 const PostDateTime = styled.span`
@@ -268,31 +345,24 @@ const EditContainer = styled.div`
 
 const EditInput = styled.input`
   padding: 8px;
-  border: 1px solid #ccc;
+  border: none;
   border-radius: 4px;
+  outline: none; /* 포커스 시 외곽선 제거 */
   font-size: 14px;
 `;
 
 const EditTextarea = styled.textarea`
   padding: 8px;
-  border: 1px solid #ccc;
+  border: none; /* 테두리 제거 */
   border-radius: 4px;
   font-size: 14px;
+  outline: none; /* 포커스 시 외곽선 제거 */
   resize: none;
 `;
 
 const EditActions = styled.div`
   display: flex;
   gap: 8px;
-`;
-
-const EditButton = styled.button`
-  padding: 8px 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
 `;
 
 const CancelButton = styled.button`
@@ -302,4 +372,7 @@ const CancelButton = styled.button`
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  &:hover {
+    background-color: #aaa;
+  }
 `;

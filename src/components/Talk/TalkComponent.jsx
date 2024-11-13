@@ -34,6 +34,7 @@ import defaultProfileImage from '../../assets/user_profile.png';
         ...post,
         tag: JSON.parse(post.tag || "[]"),
       }));
+  
       setPosts(transformedPosts);
       setPagination(pagination);
     };
@@ -57,7 +58,7 @@ import defaultProfileImage from '../../assets/user_profile.png';
 // 게시글 목록 렌더링
    return (
     <>
-      <PostComponents posts={posts} />
+      <PostComponents posts={posts} setPosts={setPosts}  />
       {/* 페이지네이션 컨트롤 */}
       <PaginationContainer>
         <PaginationButton onClick={() => handlePageChange(page - 1)} disabled={page <= 1}>

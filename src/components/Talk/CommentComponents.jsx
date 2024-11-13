@@ -9,8 +9,7 @@ const CommentComponents = ({ comments, userInfo, onCommentSubmit }) => {
 
   
   
-  
-  const formatDate = (dateString) => {
+const formatDate = (dateString) => {
     // "2024-11-12T14:05:52.000Z" 형태의 문자열에서 필요한 부분 추출
      const [datePart, timePart] = dateString.split("T");
      const [year, month, day] = datePart.split("-");

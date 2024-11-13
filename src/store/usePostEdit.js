@@ -1,14 +1,15 @@
 import { useState } from 'react';
+import { updatePost } from '../services/postApi';
 // import { updatePost } from '../postEditService'; // 수정 API 함수 가져오기
 
-const usePostEdit = (setPosts) => {
+const usePostEdit = (setPosts, userInfo) => {
   const [editingPostId, setEditingPostId] = useState(null);
   const [updatedTitle, setUpdatedTitle] = useState('');
   const [updatedMessage, setUpdatedMessage] = useState('');
 
   // 수정 모드 활성화
   const handleEdit = (post) => {
-    setEditingPostId(post.talk_id,userInfo.userId); // 수정 중인 게시글 ID 설정
+    setEditingPostId(post.talk_id); // 수정 중인 게시글 ID 설정
     setUpdatedTitle(post.talk_title);
     setUpdatedMessage(post.talk_message);
   };
@@ -28,7 +29,9 @@ const usePostEdit = (setPosts) => {
     };
 
     try {
+      console.log('수정 요청 데이터:', updatedData); // 요청 데이터 확인
       const updatedPost = await updatePost(talkId, updatedData); // 수정 API 호출
+      console.log('수정된 게시글 데이터:', updatedPost); // 응답 데이터 확인
 
       // 로컬 상태 업데이트
       setPosts((prevPosts) =>
