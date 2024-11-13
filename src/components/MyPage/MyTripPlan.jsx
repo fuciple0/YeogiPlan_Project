@@ -67,7 +67,11 @@ const SharedTripStamps = () => {
       }
       const data = await response.json();
       if (data.success && Array.isArray(data.data)) {
-        setTripPlans(data.data);
+        // 최신 작성 순으로 정렬 (내림차순)
+        const sortedTripPlans = data.data.sort((a, b) =>
+          new Date(b.start_date) - new Date(a.start_date)
+        );
+        setTripPlans(sortedTripPlans);
       } else {
         throw new Error('Unexpected data format');
       }
@@ -115,32 +119,40 @@ const SharedTripStamps = () => {
 
   return (
     <Container>
-      {tripPlans.map((tripPlan) => (
-        <TripPlanCard key={tripPlan.trip_plan_id}>
-          <CardTitle>{tripPlan.trip_plan_title}</CardTitle>
-          <Carddate>{formatDate(tripPlan.start_date)} ~ {formatDate(tripPlan.end_date)}</Carddate>
-          <ScrollContainer
-            ref={containerRef}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseLeave}
-          >
-            <StampContainer>
-              {tripPlan.details.map((detail, index) => (
-                <StampItem key={index}>
-                  <StampContent onClick={() => handleStampClick(detail)}>
-                    <CertifiedBackground>Certified</CertifiedBackground>
-                    <StampBorder>
-                      <PlaceName>{detail.place_name}</PlaceName>
-                    </StampBorder>
-                  </StampContent>
-                </StampItem>
-              ))}
-            </StampContainer>
-          </ScrollContainer>
-        </TripPlanCard>
-      ))}
+      {isLoading ? (
+        <LoadingMessage>Loading...</LoadingMessage>
+      ) : error ? (
+        <ErrorMessage>{`Error: ${error}`}</ErrorMessage>
+      ) : tripPlans.length === 0 ? (
+        <EmptyMessage>여행을 기록하세요</EmptyMessage>
+      ) : (
+        tripPlans.map((tripPlan) => (
+          <TripPlanCard key={tripPlan.trip_plan_id}>
+            <CardTitle>{tripPlan.trip_plan_title}</CardTitle>
+            <Carddate>{formatDate(tripPlan.start_date)} ~ {formatDate(tripPlan.end_date)}</Carddate>
+            <ScrollContainer
+              ref={containerRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+            >
+              <StampContainer>
+                {tripPlan.details.map((detail, index) => (
+                  <StampItem key={index}>
+                    <StampContent onClick={() => handleStampClick(detail)}>
+                      <CertifiedBackground>Certified</CertifiedBackground>
+                      <StampBorder>
+                        <PlaceName>{detail.place_name}</PlaceName>
+                      </StampBorder>
+                    </StampContent>
+                  </StampItem>
+                ))}
+              </StampContainer>
+            </ScrollContainer>
+          </TripPlanCard>
+        ))
+      )}
       <ModalForMyTrip
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -148,9 +160,15 @@ const SharedTripStamps = () => {
       />
     </Container>
   );
-};
-
+}
 export default SharedTripStamps;
+
+const EmptyMessage = styled.div`
+  text-align: center;
+  font-size: 1.5rem;
+  color: #507dbc;
+  margin: 2rem 0;
+`;
 
 const stampAppear = keyframes`
   from {
@@ -221,7 +239,9 @@ const StampItem = styled.div`
   &:hover {
     transform: scale(1.05); /* 아이템 hover 시 크기 변화 */
   }
+  animation: ${stampAppear} 0.5s ease-in-out; /* 애니메이션 추가 */
 `;
+
 const StampContent = styled.div`
   width: 8rem;
   height: 8rem;
