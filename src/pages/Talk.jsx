@@ -5,7 +5,7 @@ import ChipButtons from '../components/ChipButtons';
 import TalkModal from '../components/TalkModal';
 import TalkLocationModal from '../components/TalkLocationModal';
 import TalkComponent from '../components/TalkComponent';
-import tiwanImage from '../assets/talk_img/tiwan.jpg';
+import tiwanImage from '../assets/talk_img/tiwan2.jpg';
 
 const Talk = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,9 +25,9 @@ const Talk = () => {
   };
 
 
-  const handleConfirm = (title, content) => {
+  const handleConfirm = (title, content, tag) => {
     if (addPostFunc) {
-      addPostFunc(title, content);
+      addPostFunc(title, content,tag);
       closeModal();
     }
   };

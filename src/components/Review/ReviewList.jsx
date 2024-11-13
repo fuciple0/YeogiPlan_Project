@@ -38,6 +38,7 @@ const fetchPlaceReviews = async (place_id) => {
 // 리뷰 목록 컴포넌트
 const ReviewList = ({ placeId }) => {
   const [reviews, setReviews] = useState([]);
+ 
 
   // 리뷰 데이터 불러오기
   useEffect(() => {
@@ -48,13 +49,14 @@ const ReviewList = ({ placeId }) => {
      };
     loadReviews();
    }, [placeId]);
-   
   console.log("리뷰 목록 렌더링:", reviews);
 
-    // 리뷰 상태 변경 시 로그 출력
-    useEffect(() => {
-      console.log("업데이트된 리뷰 목록:", reviews); // reviews 상태가 업데이트된 후의 데이터를 확인
-    }, [reviews]);
+
+
+    // // 리뷰 상태 변경 시 로그 출력
+    // useEffect(() => {
+    //   console.log("업데이트된 리뷰 목록:", reviews); // reviews 상태가 업데이트된 후의 데이터를 확인
+    // }, [reviews]);
 
 
 

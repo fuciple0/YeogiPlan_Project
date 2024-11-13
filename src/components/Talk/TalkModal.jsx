@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useState } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { setUser } from '../store/userSlice';
+import { setUser } from '../../store/userSlice';
 
 const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
 
@@ -25,7 +25,8 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
 
 
     const handleConfirm = () => {
-    onConfirm(title, content); // 상위 컴포넌트에 제목과 내용을 전달
+    console.log("최종 확인 - 선택된 태그:", selectedTags);
+    onConfirm(title, content,selectedTags); // 상위 컴포넌트에 제목과 내용을 전달
     setTitle(''); // 입력값 초기화
     setContent('');
     setSelectedTags([]);
@@ -61,14 +62,14 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
           onChange={(e) => setContent(e.target.value)}
         />
         {/* Redux에서 가져온 사용자 정보 화면에 표시 */}
-        <UserInfoContainer>
+        {/* <UserInfoContainer>
           <p>로그인한 사용자 정보:</p>
           <p>유저번호: {userInfo?.userId || "로그인 정보 없음"}</p>
           <p>이메일: {userInfo?.email || "로그인 정보 없음"}</p>
           <p>닉네임: {userInfo?.nickname || "로그인 정보 없음"}</p>
           <p>이미지: {userInfo?.profile_photo || "로그인 정보 없음"}</p>
           <p>토큰: {token || "토큰 없음"}</p>
-        </UserInfoContainer>
+        </UserInfoContainer> */}
 
 
 
@@ -129,7 +130,23 @@ const ModalContent = styled.div`
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+
+  animation: slideUp 0.4s ease-out; /* 애니메이션 추가 */
+  
+  /* 애니메이션 */
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%); /* 화면 아래에서 시작 */
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0); /* 원래 위치로 */
+      opacity: 1;
+    }
+  }
 `;
+
+
 const TitleContainer = styled.div`
   display: flex;
   align-items: center;

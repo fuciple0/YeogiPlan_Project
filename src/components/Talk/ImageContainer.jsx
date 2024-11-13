@@ -6,7 +6,7 @@ import { IoMdArrowDropdown } from "react-icons/io";
 
 const ImageContainerWrapper = styled.div`
   width: 100%;
-  height: 200px;
+  height: 280px;
   background-image: url(${({ imageUrl }) => imageUrl});
   background-size: cover;
   background-position: center;
