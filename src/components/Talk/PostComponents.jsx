@@ -4,10 +4,10 @@ import styled from 'styled-components';
 import { FaRegCommentDots } from "react-icons/fa";
 import { useSelector } from 'react-redux';
 import CommentComponents from './CommentComponents';
-import defaultProfileImage from '../assets/user_profile.png';
+import defaultProfileImage from '../../assets/user_profile.png';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
-import { fetchComments, handleCommentSubmit, handleCommentIconClick } from '../services/commentsHelper';
-import { updatePost } from '../services/postApi';
+import { fetchComments, handleCommentSubmit, handleCommentIconClick } from '../../services/commentsHelper';
+import { updatePost } from '../../services/postApi';
 import usePostEdit from './usePostEdit'; 
 
   

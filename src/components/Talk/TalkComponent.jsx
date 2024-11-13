@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import PostComponents from './PostComponents';
 import styled from 'styled-components';
-import { fetchPosts, addPost as apiAddPost, deletePost as apiDeletePost } from '../services/postApi';
-import defaultProfileImage from '../assets/user_profile.png'; 
+import { fetchPosts, addPost as apiAddPost, deletePost as apiDeletePost } from '../../services/postApi';
+import defaultProfileImage from '../../assets/user_profile.png'; 
 
 
     // 게시글 작성

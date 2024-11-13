@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import defaultProfileImage from '../assets/user_profile.png'; 
+import defaultProfileImage from '../../assets/user_profile.png'; 
 
 const CommentComponents = ({ comments, userInfo, onCommentSubmit }) => {
   const [commentText, setCommentText] = useState("");

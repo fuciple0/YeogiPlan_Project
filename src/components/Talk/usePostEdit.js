@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { updatePost } from './postEditService'; // 수정 API 함수 가져오기
+// import { updatePost } from '../postEditService'; // 수정 API 함수 가져오기
 
 const usePostEdit = (setPosts) => {
   const [editingPostId, setEditingPostId] = useState(null);
