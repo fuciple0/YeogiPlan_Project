@@ -1,24 +1,38 @@
 // src/pages/Mypage.jsx
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom'; // useNavigate 가져오기
 import styled from 'styled-components';
 import { logoutUser } from '../store/userSlice';
 import default_profile from '../assets/user_profile.png';
 import ProfileEditModal from '../components/ProfileEditModal';
 import SharedTripStamps from '../components/Mypage/MyTripPlan';
+import { FaEdit, FaSignOutAlt } from 'react-icons/fa'; // edit과 logout 아이콘
+
 
 
 const Mypage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate(); // useNavigate 훅 초기화
+  const userProfile = useSelector((state) => state.user.userInfo); // Redux store에서 프로필 가져오기
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // userProfile을 기반으로 초기 프로필 상태 설정
   const [profile, setProfile] = useState({
-    image: default_profile,
-    nickname: '익명',
+    image: userProfile?.profile_photo || default_profile,
+    nickname: userProfile?.nickname || '익명',
+    email: userProfile?.email || '이메일 없음',
   });
 
   const [activeTab, setActiveTab] = useState('travelLog'); // 기본 탭 상태 설정
+
+  useEffect(() => {
+    setProfile({
+      image: userProfile?.profile_photo || default_profile,
+      nickname: userProfile?.nickname || '익명',
+      email: userProfile?.email || '이메일 없음',
+    });
+  }, [userProfile]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -40,12 +54,20 @@ const Mypage = () => {
   return (
     <MypageContainer>
       <ProfileSection>
-        <ProfileImage src={profile.image} alt="프로필 이미지" />
-        <Nickname>{profile.nickname}</Nickname>
-        <EditProfileButton onClick={openModal}>프로필 수정</EditProfileButton>
-        <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton> {/* 로그아웃 버튼 추가 */}
+        <ProfileDetails>
+          <Nickname>{profile.nickname}</Nickname>
+          <Email>{profile.email}</Email>
+          <EditProfileButton onClick={openModal}>
+            <FaEdit /> 프로필 수정 &gt;
+          </EditProfileButton>
+          <LogoutButton onClick={handleLogout}>
+            <FaSignOutAlt /> 로그아웃
+          </LogoutButton>
+        </ProfileDetails>
+        <ProfileImageWrapper>
+          <ProfileImage src={profile.image} alt="프로필 이미지" />
+        </ProfileImageWrapper>
       </ProfileSection>
-
       <Tabs>
         <Tab isActive={activeTab === 'travelLog'} onClick={() => setActiveTab('travelLog')}>
           <TabLabel>나의 여행기록</TabLabel>
@@ -57,7 +79,7 @@ const Mypage = () => {
 
       <Content>
         {activeTab === 'travelLog' ? (
-          <TravelLogContent>여행 기록을 보여줄 영역입니다.
+          <TravelLogContent>
             <SharedTripStamps></SharedTripStamps>
 
           </TravelLogContent>
@@ -87,9 +109,27 @@ const MypageContainer = styled.div`
 `;
 
 const ProfileSection = styled.div`
-  text-align: center;
-  position: relative;
-  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between; /* 좌우 배치 */
+  align-items: center; /* 세로 가운데 정렬 */
+  width: 100%;
+  margin-bottom: 40px;
+`;
+
+
+const ProfileDetails = styled.div`
+  margin-left: 20px; /* 왼쪽 여백 추가 */
+  display: flex;
+  flex-direction: column;
+  gap: 1px; /* 각 요소 간의 일정한 간격을 제공 */
+  width: 60%; /* 전체 폭에 맞게 */
+`;
+
+const ProfileImageWrapper = styled.div`
+  width: 35%; /* 이미지 영역 크기 */
+  display: flex;
+  justify-content: flex-end; /* 오른쪽 정렬 */
+  margin-right: 20px; /* 오른쪽 여백 추가 (약간만 띄움) */
 `;
 
 const ProfileImage = styled.img`
@@ -97,57 +137,65 @@ const ProfileImage = styled.img`
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  margin-top: 64px;
+  border: 4px solid #fff; /* 테두리 추가 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
 `;
 
 const Nickname = styled.p`
-  font-size: 18px;
+  font-size: 30px;  /* 적당한 크기 */
   font-weight: bold;
   color: #333;
+  margin: 0;
 `;
 
-const EditProfileButton = styled.button`
-  position: absolute;
-  font-size: 14px;
-  top: 0;
-  right: 0;
-  color: #507DBC;
-  background: none;
-  border: 1px solid #507DBC;
-  border-radius: 20px;
-  padding: 8px 15px;
+const Email = styled.p`
+  font-size: 16px;
+  color: #888;
+  margin: 0;
+`;
+
+
+
+const EditProfileButton = styled.p`
+  font-size: 16px;
+  font-weight: 500;
+  color: #507dbc;
   cursor: pointer;
-  transition: background-color 0.3s;
+  display: flex; /* 아이콘과 텍스트를 가로로 정렬 */
+  align-items: center; /* 세로 정렬 */
+  transition: color 0.3s;
+
+  & > svg {
+    margin-right: 8px; /* 아이콘과 텍스트 사이 간격 */
+  }
 
   &:hover {
-    background-color: #507DBC;
-    color: white;
-    font-weight: bold;
+    color: #3d6fa1;
   }
 `;
 
-const LogoutButton = styled.button`
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 14px;
-  color: #507DBC;
-  border: 1px solid #507DBC;
-  border-radius: 20px;
-  background: none;
+const LogoutButton = styled.p`
+  font-size: 16px;
+  font-weight: 500;
+  color: #507dbc;
   cursor: pointer;
-  transition: background-color 0.3s;
+  display: inline-flex; /* 텍스트처럼 왼쪽 정렬 */
+  align-items: center;
+  margin-top: 5px; /* 간격 줄이기 */
+
+  & > svg {
+    margin-right: 8px; /* 아이콘과 텍스트 사이 간격 */
+  }
 
   &:hover {
-    background-color: #507DBC;
-    color: white;
-    font-weight: bold;
+    color: #3d6fa1;
   }
 `;
 
 const Tabs = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 32px;
+  margin-top: 40px;
   border-top: 1px solid #f0f0f0;
 `;
 
@@ -162,13 +210,9 @@ const Tab = styled.button`
   font-weight: ${({ isActive }) => (isActive ? 'bold' : 'normal')};
   color: ${({ isActive }) => (isActive ? '#333' : '#8d8d8d')};
 
-  ${({ isActive }) =>
-    !isActive &&
-    `
-      &:hover {
-        background-color: #e0e0e0;
-      }
-    `}
+  &:hover {
+    background-color: #e0e0e0;
+  }
 `;
 
 const TabLabel = styled.span`
