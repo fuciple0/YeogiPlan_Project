@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# API 키가 포함된 파일 추가
+/src/store/mapSlice2.js

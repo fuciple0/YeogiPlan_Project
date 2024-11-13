@@ -1,10 +1,14 @@
-// src/pages/Place.jsx
+// src/pages/SingUp.jsx
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FaCamera, FaEye, FaEyeSlash } from 'react-icons/fa';
 import default_profile from '../assets/user_profile.png';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../store/userSlice';
+import { useNavigate } from 'react-router-dom'; // useNavigate import
 
-const PlaceContainer = styled.div`
+
+const SingUpContainer = styled.div`
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -13,7 +17,7 @@ const PlaceContainer = styled.div`
 
 const ProfileWrapper = styled.div`
   position: relative;
-  margin-bottom: 20px; /* 프로필 이미지와 폼 간격 추가 */
+  margin-bottom: 20px;
 `;
 
 const ProfileContainer = styled.div`
@@ -65,7 +69,6 @@ const Form = styled.form`
 const InputContainer = styled.div`
   width: 100%;
   position: relative;
-  //margin-bottom: 10px;
 `;
 
 const Label = styled.label`
@@ -87,7 +90,6 @@ const Input = styled.input`
   background-color: #f8f8f8;
   color: #333;
   outline: none;
-  //margin-bottom: 0.5rem;
 `;
 
 const EyeIcon = styled.div`
@@ -111,7 +113,7 @@ const Button = styled.button`
   padding: 12px;
   font-size: 16px;
   font-weight: bold;
-  background-color: #507DBC; /* 버튼 색상 변경 */
+  background-color: #507DBC;
   color: white;
   border: none;
   border-radius: 5px;
@@ -120,7 +122,11 @@ const Button = styled.button`
   margin-top: 40px;
 `;
 
-const Place = () => {
+const SingUp = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate(); // useNavigate 호출
+
+
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -142,7 +148,7 @@ const Place = () => {
         const file = e.target.files[0];
         if (file) {
             setFormData({ ...formData, profile_photo: file });
-            setProfileImage(URL.createObjectURL(file)); // 미리보기 이미지를 설정합니다.
+            setProfileImage(URL.createObjectURL(file));
         }
     };
 
@@ -151,13 +157,15 @@ const Place = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // 비밀번호 확인
         if (formData.password !== formData.confirmPassword) {
             setError('비밀번호가 일치하지 않습니다. 다시 입력해주세요');
             return;
         }
         setError('');
 
-        // FormData 생성 및 데이터 전송
+        // FormData 생성 및 데이터 추가
         const formDataToSend = new FormData();
         formDataToSend.append('email', formData.email);
         formDataToSend.append('password', formData.password);
@@ -165,16 +173,44 @@ const Place = () => {
         formDataToSend.append('profile_photo', formData.profile_photo);
 
         try {
-            const response = await fetch('http://43.201.36.203:3000/api/users/register', {
+            const response = await fetch('http://15.164.142.129:3001/api/users/register', {
                 method: 'POST',
                 body: formDataToSend,
             });
 
             const data = await response.json();
+
             if (response.ok) {
                 alert(data.message);
+
+                // 사용자 정보를 로컬 스토리지에 저장
+                localStorage.setItem('accessToken', data.token);
+                localStorage.setItem('userInfo', JSON.stringify({
+                    userId: data.user_id, // 수정된 부분
+                    email: formData.email,
+                    nickname: data.nickname,
+                    profile_photo: `http://15.164.142.129:3001/${data.profilePhoto}`, // 올바른 경로로 수정
+                    role: 'member'
+                }));
+
+                // Redux에 사용자 정보 저장
+                dispatch(setUser({
+                    userInfo: {
+                        userId: data.userId,
+                        email: formData.email,
+                        nickname: formData.nickname,
+                        profile_photo: `http://15.164.142.129:3001/${data.profilePhoto}`,
+                        role: 'member'
+                    },
+                    token: data.token,
+                    preferences: { theme: 'dark', language: 'ko' }
+                }));
+
                 setFormData({ email: '', password: '', confirmPassword: '', nickname: '', profile_photo: null });
                 setProfileImage(null); // 프로필 이미지 초기화
+
+                 // 회원가입 성공 시 홈 페이지로 이동
+                 navigate('/');
             } else {
                 alert('Error: ' + data.message);
             }
@@ -185,7 +221,7 @@ const Place = () => {
     };
 
     return (
-        <PlaceContainer>
+        <SingUpContainer>
             <ProfileWrapper>
                 <ProfileContainer onClick={() => document.getElementById('fileInput').click()}>
                     {profileImage ? (
@@ -263,8 +299,8 @@ const Place = () => {
                 </InputContainer>
                 <Button type="submit">회원가입</Button>
             </Form>
-        </PlaceContainer>
+        </SingUpContainer>
     );
 };
 
-export default Place;
+export default SingUp;
