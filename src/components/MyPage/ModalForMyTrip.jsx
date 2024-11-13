@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaStar } from 'react-icons/fa';
 import PropTypes from 'prop-types'; // PropTypes 추가
-import ReviewForm from '../ReviewForm';
+import ReviewForm from '../Review/ReviewForm';
 import default_profile from '../../assets/user_profile.png';
-import ReviewList from '../ReviewList';
+import ReviewList from '../Review/ReviewList';
 
 const ModalForMyTrip = ({ isOpen, onClose, place }) => {
     const [apiData, setApiData] = useState(null);

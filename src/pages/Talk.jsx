@@ -1,10 +1,10 @@
 // src/pages/Talk.jsx
 import React, { useState } from 'react';
-import ImageContainer from '../components/ImageContainer';
-import ChipButtons from '../components/ChipButtons';
-import TalkModal from '../components/TalkModal';
-import TalkLocationModal from '../components/TalkLocationModal';
-import TalkComponent from '../components/TalkComponent';
+import ImageContainer from '../components/Talk/ImageContainer';
+import ChipButtons from '../components/Talk/ChipButtons';
+import TalkModal from '../components/Talk/TalkModal';
+import TalkLocationModal from '../components/Talk/TalkLocationModal';
+import TalkComponent from '../components/Talk/TalkComponent';
 import tiwanImage from '../assets/talk_img/tiwan2.jpg';
 
 const Talk = () => {

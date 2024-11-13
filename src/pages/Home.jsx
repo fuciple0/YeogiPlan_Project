@@ -6,7 +6,7 @@ import MainCarousel from '../components/MainCarousel';
 import SearchModal from '../components/SearchModal';
 import BestCardSlider from '../components/BestCardSlider';
 import RecommendPlaceCard from '../components/RecommendPlaceCard';
-import DetailPlaceInfoModal from '../components/DetailPlaceInfoModal';
+import DetailPlaceInfoModal from '../components/Review/DetailPlaceInfoModal';
 import Planning from './Planning';
 import { addTripData } from '../store/placeSlice'; // Redux 액션 임포트
 

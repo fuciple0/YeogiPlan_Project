@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import PostComponents from './PostComponents';
 import styled from 'styled-components';
-import { fetchPosts, addPost as apiAddPost, deletePost as apiDeletePost } from '../services/postApi';
-import defaultProfileImage from '../assets/user_profile.png'; 
+import { fetchPosts, addPost as apiAddPost, deletePost as apiDeletePost } from '../../services/postApi';
+import defaultProfileImage from '../../assets/user_profile.png'; 
 
 
     // 게시글 작성
@@ -34,6 +34,7 @@ import defaultProfileImage from '../assets/user_profile.png';
         ...post,
         tag: JSON.parse(post.tag || "[]"),
       }));
+  
       setPosts(transformedPosts);
       setPagination(pagination);
     };
@@ -57,7 +58,7 @@ import defaultProfileImage from '../assets/user_profile.png';
 // 게시글 목록 렌더링
    return (
     <>
-      <PostComponents posts={posts} />
+      <PostComponents posts={posts} setPosts={setPosts}  />
       {/* 페이지네이션 컨트롤 */}
       <PaginationContainer>
         <PaginationButton onClick={() => handlePageChange(page - 1)} disabled={page <= 1}>

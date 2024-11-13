@@ -58,6 +58,7 @@ export const fetchPosts = async (page, limit) => {
             profile_photo: userInfo.profile_photo || null,
           },
         };
+        
         console.log("새로운 게시글:", newPost);
         return newPost;
       } else {
@@ -74,12 +75,18 @@ export const fetchPosts = async (page, limit) => {
   // 게시글 수정
   export const updatePost = async (talkId, updatedData) => {
     try {
+
+        // requestBody 생성
+       const requestBody = {
+       talk_title: updatedData.talk_title,
+       talk_message: updatedData.talk_message,
+    };
       const response = await fetch(`http://15.164.142.129:3001/api/talk_board/${talkId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedData),
+        body: JSON.stringify(requestBody),
       });
   
       if (!response.ok) {
@@ -88,6 +95,7 @@ export const fetchPosts = async (page, limit) => {
   
       const data = await response.json();
       return data;
+    
     } catch (error) {
       console.error('Error updating post:', error);
       throw error;

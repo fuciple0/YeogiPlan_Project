@@ -1,7 +1,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import logoFly from '../assets/talk_img/logo_fly.png';
+import logoFly from '../../assets/talk_img/logo_fly.png';
 
 
 

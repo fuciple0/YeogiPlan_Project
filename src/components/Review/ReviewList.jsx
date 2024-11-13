@@ -2,7 +2,7 @@
 import React, { useState, useEffect  } from 'react'
 import styled from 'styled-components'
 import { FaStar, FaThumbsUp, FaRegThumbsUp } from 'react-icons/fa'
-import defaultProfileImage from '../assets/user_profile.png'; 
+import defaultProfileImage from '../../assets/user_profile.png'; 
 import DetailPlaceInfoModal from './DetailPlaceInfoModal';
 
 

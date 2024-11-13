@@ -105,12 +105,15 @@ const handleDateSelectConfirm = async (tripDataWithId) => {
           };
         } else {
           console.error("장소 저장 실패:", result.message || response.statusText);
-
           return null;
         }
-      })
+      } catch (error) {
+        console.error("API 호출 중 오류:", error);
+        return null;
+      }
+       })
     );
-
+  
     // 성공적으로 저장된 장소만 Redux에 추가
     const successfulPlaces = updatedPlacesWithId.filter(place => place !== null);
 
