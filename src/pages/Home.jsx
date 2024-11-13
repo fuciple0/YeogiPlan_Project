@@ -107,7 +107,7 @@ const Home = () => {
       </Section>
 
       <Section>
-        <Title>이런 곳은 어때요?</Title>
+        <Title>이런 곳은 어때요? 🏞️ </Title>
         <RecommendGrid>
           {howAboutThis.map((place, index) => (
             <RecommendPlaceCard
