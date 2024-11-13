@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaStar } from 'react-icons/fa';
 import ReviewForm from './ReviewForm';
-import default_profile from '../assets/user_profile.png';
+import default_profile from '../../assets/user_profile.png';
 import ReviewList from './ReviewList';
 
 

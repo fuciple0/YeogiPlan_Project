@@ -1,3 +1,5 @@
+import { updateCommentCount } from '../store/postsSlice';
+
 // 댓글 가져오기 함수
 export const fetchComments = async (talk_id, setCommentsData) => {
     try {
@@ -23,7 +25,7 @@ export const fetchComments = async (talk_id, setCommentsData) => {
   };
   
   // 댓글 작성 함수
-  export const handleCommentSubmit = async (talk_id, commentText, userInfo, fetchComments) => {
+  export const handleCommentSubmit = async (talk_id, commentText, userInfo) => {
     if (!commentText.trim()) return;
   
     try {
@@ -37,16 +39,16 @@ export const fetchComments = async (talk_id, setCommentsData) => {
           contents: commentText,
           parent_id: null,
         }),
-      });
+     } );
   
-      if (response.ok) {
-        console.log("댓글 작성 성공");
-        fetchComments(talk_id); // 댓글 작성 후 최신 댓글 목록 가져오기
+    
+        if (response.ok) {
+          dispatch(updateCommentCount({ talk_id, increment: 1 })); // Redux 상태에서 댓글 수 업데이트
       } else {
-        console.error("댓글 작성에 실패했습니다.");
+        console.error('댓글 작성에 실패했습니다.');
       }
     } catch (error) {
-      console.error("Error submitting comment:", error);
+      console.error('Error submitting comment:', error);
     }
   };
   

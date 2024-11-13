@@ -36,7 +36,7 @@ const ModalContent = styled.div`
   background-color: white;
   padding: 20px;
   width: 20%; /* 모달 너비 확장 */
-  height: 10%; /* 모달 높이를 콘텐츠에 따라 자동 조정 */
+  height: 15%; /* 모달 높이를 콘텐츠에 따라 자동 조정 */
   border-radius: 8px;
   text-align: center;
   position: relative;
