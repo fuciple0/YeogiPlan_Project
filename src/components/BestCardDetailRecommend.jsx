@@ -96,7 +96,12 @@ const handleDateSelectConfirm = async (tripDataWithId) => {
         if (response.ok && result.success) {
           console.log("장소 저장 성공:", place.name);
           // 반환된 trip_plan_detail_id와 order_no를 place 객체에 추가
-          return { ...place, order_no: result.data.order_no, trip_plan_detail_id: result.data.trip_plan_detail_id };
+          return { 
+            ...place, 
+            order_no: result.data.order_no, 
+            trip_plan_detail_id: result.data.trip_plan_detail_id, 
+            location: { lat: place.location.lat, lng: place.location.lng }, // 경도, 위도 포함
+          };
         } else {
           console.error("장소 저장 실패:", result.message || response.statusText);
           return null;

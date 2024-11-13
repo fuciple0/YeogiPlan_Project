@@ -16,11 +16,6 @@ const MapComponent = ({ selectedPlaces }) => {
         height: '800px', // 지도 높이는 적당히 설정
     };
 
-    // 첫 번째 장소가 있으면 그 좌표를 중심으로 설정, 없으면 서울 좌표로 기본 설정
-    const defaultCenter = selectedPlaces[0]?.[0]
-        ? { lat: selectedPlaces[0][0].location.lat, lng: selectedPlaces[0][0].location.lng }
-        : { lat: 37.5665, lng: 126.9780 };
-
     const mapOptions = {
         styles: [
             {
@@ -31,28 +26,30 @@ const MapComponent = ({ selectedPlaces }) => {
         ]
     };
 
-    const colors = ["red", "blue", "green"];
+    const colors = ["red", "blue", "green", "purple", "orange", "yellow"];
     
-    // 초기 center와 zoom 상태를 useState로 관리
-    const [mapCenter, setMapCenter] = useState(defaultCenter);
-    const [mapZoom, setMapZoom] = useState(15); // 초기 줌 레벨을 적당히 설정
+    // 첫 번째 장소가 있으면 그 좌표를 중심으로 설정, 없으면 서울 좌표로 기본 설정
+    const [mapCenter, setMapCenter] = useState(
+        selectedPlaces.length > 0
+            ? { lat: selectedPlaces[0].lat, lng: selectedPlaces[0].lng }
+            : { lat: 37.5665, lng: 126.9780 }
+    );
+    const [mapZoom, setMapZoom] = useState(10);
 
     useEffect(() => {
-        // 첫 번째 장소가 있으면 지도 중앙과 줌을 첫 번째 장소로 설정
-        if (selectedPlaces[0]?.[0]) {
+        // 첫 번째 장소가 있는 경우 지도 중심과 줌 레벨을 해당 장소로 설정
+        if (selectedPlaces.length > 0 && selectedPlaces[0].lat && selectedPlaces[0].lng) {
             setMapCenter({
-                lat: selectedPlaces[0][0].location.lat,
-                lng: selectedPlaces[0][0].location.lng,
+                lat: selectedPlaces[0].lat,
+                lng: selectedPlaces[0].lng,
             });
-            setMapZoom(15); // 첫 장소에 맞는 줌 레벨로 설정 (필요에 따라 조정)
+            setMapZoom(15); // 첫 장소에 맞는 줌 레벨 설정
+        } else {
+            // 장소가 없을 경우 기본 중심과 줌으로 돌아감
+            setMapCenter({ lat: 37.5665, lng: 126.9780 });
+            setMapZoom(12);
         }
     }, [selectedPlaces]);
-
-    // 콘솔 로그로 데이터와 google 객체 상태 확인
-    useEffect(() => {
-        console.log("Selected Places:", selectedPlaces);
-        console.log("Google Maps Symbol Path:", window.google?.maps?.SymbolPath);
-    }, [selectedPlaces]);  
 
   return (
     <MapContainer>
@@ -63,70 +60,30 @@ const MapComponent = ({ selectedPlaces }) => {
                 zoom={mapZoom}
                 options={mapOptions}
             >
-                {selectedPlaces.map((dayPlaces, dayIndex) => (
-                    dayPlaces.map((place, placeIndex) => (
+                {selectedPlaces.map((place, index) => (
+                    place.lat && place.lng ? (
                         <MarkerF
                             key={place.place_id}
-                            position={{ lat: place.location.lat, lng: place.location.lng }}
+                            position={{ lat: place.lat, lng: place.lng }}
                             label={{
-                                text: `${placeIndex + 1}`,
+                                text: `${index + 1}`,
                                 color: "white",
                                 fontSize: "12px",
                             }}
                             icon={{
                                 path: window.google.maps.SymbolPath.CIRCLE,
                                 scale: 8,
-                                fillColor: colors[dayIndex % colors.length],
+                                    fillColor: colors[(place.trip_day - 1) % colors.length],  // trip_day 값에 따라 색상 변경
                                 fillOpacity: 1,
                                 strokeWeight: 1,
                             }}
-                        />
-                    ))
+                            />
+                        ) : null
                 ))}
             </GoogleMap>
         </LoadScript>
     </MapContainer>
   );    
-
-    // // 각 DAY별로 다른 색상 배열
-    // const dayColors = ["red", "blue", "green", "purple", "orange", "pink"];    
-
-    // return (
-    //     <MapContainer>
-    //         <LoadScript googleMapsApiKey={apiKey}> {/* Redux에서 가져온 API 키 사용 */}
-    //             <GoogleMap
-    //                 mapContainerStyle={containerStyle}
-    //                 center={seoulCenter}
-    //                 zoom={13} // 서울에 맞는 적당한 줌 레벨
-    //             >
-    //                 {selectedPlaces.map((dayPlaces, dayIndex) => {
-    //                     dayPlaces.map((place, placeIndex) => (
-    //                         <Marker 
-    //                             key={place.place_id}
-    //                             position={{
-    //                                 lat: place.location.lat,
-    //                                 lng: place.location.lng,
-    //                             }}
-    //                             label={{
-    //                                 text: `${placeIndex + 1}`, // 순번
-    //                                 color: "white",
-    //                                 fontSize: "12px",
-    //                                 fontWeight:"bold",
-    //                             }}
-    //                             icon={{
-    //                                 path: window.google.maps.SymbolPath.CIRCLE,
-    //                                 fillColor: dayColors[dayIndex % dayColors.length], // dayIndex별로 다른 색상 적용
-    //                                 fillOpacity: 1,
-    //                                 strokeWeight: 1,
-    //                                 scale: 8, 
-    //                             }}
-    //                         />
-    //                     ))
-    //                 })}
-    //             </GoogleMap>
-    //         </LoadScript>
-    //     </MapContainer>
-    // );
 };
 
 const MapContainer = styled.section`
