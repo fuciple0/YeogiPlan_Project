@@ -81,12 +81,15 @@ export const placeSlice = createSlice({
     
     addPlace: (state, action) => {
       const { dayIndex, newPlace } = action.payload;
-      state.selectedPlaces[dayIndex].push(newPlace);
+      // state.selectedPlaces[dayIndex].push(newPlace);
     },
     // 새로운 액션을 추가: 여행 데이터와 장소들을 Redux에 저장
     addTripData: (state, action) => {
-      state.tripData = action.payload.tripData;  // 여행 데이터
-      state.selectedPlaces = action.payload.places;  // 선택된 장소들
+        // dayIndex에 해당하는 항목이 배열인지 확인하고, 배열이 아니면 초기화
+        if (!Array.isArray(state.selectedPlaces[dayIndex])) {
+          state.selectedPlaces[dayIndex] = []; // 배열로 초기화
+
+  }      state.selectedPlaces = action.payload.places;  // 선택된 장소들
     },
   },
   extraReducers: (builder) => {

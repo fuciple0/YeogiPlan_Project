@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'; // useNavigate 가져오기
 import styled from 'styled-components';
 import { logoutUser } from '../store/userSlice';
 import default_profile from '../assets/user_profile.png';
-import ProfileEditModal from '../components/ProfileEditModal';
+import ProfileEditModal from '../components/MyPage/ProfileEditModal';
 import SharedTripStamps from '../components/Mypage/MyTripPlan';
 import { FaEdit, FaSignOutAlt } from 'react-icons/fa'; // edit과 logout 아이콘
 

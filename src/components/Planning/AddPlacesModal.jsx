@@ -2,13 +2,24 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { FaStar, FaCheck, FaPlus } from "react-icons/fa";
 import { IoIosWarning } from "react-icons/io";
-import Skeleton from "./Skeleton";
+import Skeleton from "../Effect/Skeleton";
+import { useDispatch, useSelector } from "react-redux";
+import { addPlace } from "../../store/placeSlice";
 
-const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
+const AddPlacesModal = ({ isOpen, onClose, onConfirm, dayIndex, tripId }) => {
     const [searchInput, setSearchInput] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    
+    const dispatch = useDispatch();
+    const userId = useSelector((state) => state.user.userInfo.userId); // userId 가져오기
+
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            handleSearch()
+        }
+    }
 
     const handleSearch = async () => {
         if (!searchInput) return;
@@ -53,12 +64,59 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
         onClose();
     };
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (selectedItems.length === 0) {
             alert("추가할 장소를 선택해주세요!");
             return;
         }
-        onConfirm(selectedItems);
+
+        // 1. Redux에 장소 추가
+        selectedItems.forEach((item) => {
+            const newPlace = {
+                ...item,
+                trip_day: dayIndex + 1,  // DAY 인덱스를 1부터 시작하도록 설정
+                order_no: selectedItems.indexOf(item) + 1, // 선택한 순서로 번호 부여
+            }
+            dispatch(addPlace({ dayIndex, newPlace }))
+
+        })
+        
+        // 2. 데이터베이스에 장소 추가
+        try {
+            await Promise.all
+            (selectedItems.map(async (place, index) => {
+                const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripId}/detail`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        trip_day: dayIndex + 1,
+                        place_name: place.name,
+                        place_name_x: place.location.lat,
+                        place_name_y: place.location.lng,
+                        place_id: place.place_id,
+                        memo: null,
+                        memo_type: "love",
+                        order_no: index + 1,
+                        review_id: null,
+                    }),
+                });
+        
+                // 응답 상태 코드와 응답 데이터 확인
+                console.log("Response Status:", response.status);
+                const data = await response.json();
+                console.log("Response Data:", data);
+        
+                if (!response.ok) throw new Error("데이터베이스 저장 실패");
+                console.log("장소 저장 성공: ", place.name);
+            }));
+            console.log("장소가 성공적으로 추가되었습니다!");
+            onConfirm(selectedItems);
+        } catch (error) {
+            console.error("장소 추가 중 오류: ", error);
+            alert("장소 추가에 실패했습니다. 서버 오류: " + error.message);
+        }
+        
         handleClose();
     };
 
@@ -71,7 +129,8 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
                     <SearchInput 
                         value={searchInput} 
                         onChange={handleInputChange}
-                        placeholder="장소를 검색해보세요" 
+                        placeholder="장소를 검색해보세요"
+                        onKeyPress={handleKeyPress} 
                     />
                     <SearchButton onClick={handleSearch}>검색</SearchButton> 
                 </SearchContainer>
@@ -83,9 +142,8 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
                             <SkeletonResultItem key={index}>
                                 <Skeleton width="60px" height="60px" />
                                 <ResultInfo>
-                                    <Skeleton width="80%" height="16px" />
-                                    <Skeleton width="60%" height="14px" />
                                     <Skeleton width="40%" height="14px" />
+                                    <Skeleton width="20%" height="14px" />
                                 </ResultInfo>
                             </SkeletonResultItem>
                         ))
