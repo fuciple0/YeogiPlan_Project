@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import dayjs from 'dayjs';
 import styled from 'styled-components';
-import InviteEmailModal from '../components/InviteEmailModal';
-import AddPlacesModal from '../components/AddPlacesModal';
+import InviteEmailModal from '../components/Planning/InviteEmailModal';
+import AddPlacesModal from '../components/Planning/AddPlacesModal';
 import { updateTripData, addPlace, fetchSharedTripPlans, setCurrentTripId, fetchTripDetails } from '../store/placeSlice';
 import EditTripModal from '../components/Planning/EditTripModal';
 import MapComponent from '../components/Planning/MapComponent';
+import { Skeleton } from '@mui/material';
 
 const Planning = () => {
   const dispatch = useDispatch();
@@ -82,6 +83,8 @@ const Planning = () => {
     dispatch(setCurrentTripId(tripId));
   };
 
+  const selectedTrip = tripList.find((trip) => trip.trip_plan_id === parseInt(currentTripId, 10))
+
   // 여행 정보 수정 후 Redux 상태에 저장
   const handleSaveTripData = (updatedData) => {
     // Redux에 수정된 여행 데이터를 저장
@@ -126,11 +129,11 @@ const Planning = () => {
       <ContentWrapper>
         <LeftColumn>
           <TripInfo>
-            <TripTitle>{tripData.tripTitle || '여행 제목'}</TripTitle>
-            <TripDestination>{tripData.destination || '목적지 정보 없음'}</TripDestination>
-            <TripDates>
-              {tripData.startDate ? dayjs(tripData.startDate).format('YYYY.MM.DD') : ''} - {tripData.endDate ? dayjs(tripData.endDate).format('MM.DD') : ''}
-            </TripDates>
+          <TripTitle>{selectedTrip ? selectedTrip.trip_plan_title : '여행 제목'}</TripTitle>
+          <TripDestination>{selectedTrip ? selectedTrip.destination : '목적지 정보 없음'}</TripDestination>
+          <TripDates>
+          {selectedTrip ? dayjs(selectedTrip.start_date).format('YYYY.MM.DD') : ''} - {selectedTrip ? dayjs(selectedTrip.end_date).format('MM.DD') : ''}
+          </TripDates>
             <ButtonContainer>
               <EditButton onClick={() => setIsEditModalOpen(true)}>수정</EditButton>
               <InviteButton onClick={handleInviteButtonClick}>+ 일행초대</InviteButton>
@@ -141,16 +144,26 @@ const Planning = () => {
             <div key={dayIndex}>
               <h2>{day}</h2>
               <PlaceList>
-                {selectedPlaces
-                  .filter((place) => place.trip_day === dayIndex + 1)
-                  .map((place) => (
-                    <PlaceContainer key={place.trip_plan_detail_id}>
-                      <OrderNumber>{place.order_no}</OrderNumber>
-                      <PlaceItem>
-                        <PlaceContent>{place.place_name}</PlaceContent>
-                      </PlaceItem>
-                    </PlaceContainer>
-                  ))}
+              {isLoading ? (
+                  // 로딩 중일 때 스켈레톤 표시
+                  Array.from({ length: 1 }).map((_, index) => (
+                      <ResultInfo>
+                        <Skeleton width="90%" height="80px" />
+                      </ResultInfo>
+                  ))
+                ) : (
+                  // 로딩이 끝나면 실제 장소 리스트 표시
+                  selectedPlaces
+                    .filter((place) => place.trip_day === dayIndex + 1)
+                    .map((place) => (
+                      <PlaceContainer key={place.trip_plan_detail_id}>
+                        <OrderNumber>{place.order_no}</OrderNumber>
+                        <PlaceItem>
+                          <PlaceContent>{place.place_name}</PlaceContent>
+                        </PlaceItem>
+                      </PlaceContainer>
+                    ))
+                )}
               </PlaceList>
               <AddPlaceButton onClick={() => openAddPlacesModal(dayIndex)}>+ 장소 추가</AddPlaceButton>
             </div>
@@ -167,7 +180,7 @@ const Planning = () => {
       <EditTripModal
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        tripData={tripData}
+        tripData={selectedTrip}
         onSave={handleSaveTripData}
       />
       {isInviteModalOpen && <InviteEmailModal open={isInviteModalOpen} onClose={handleInviteModalClose} />}
@@ -175,6 +188,8 @@ const Planning = () => {
         <AddPlacesModal 
           isOpen={isAddPlacesModalOpen} 
           onClose={closeAddPlacesModal} 
+          dayIndex={currentDay} // 현재 선택된 DAY 인덱스 전달
+          tripId={currentTripId} // 현재 여행 ID 전달
           onConfirm={() => {}}
         />
       )}
@@ -240,7 +255,7 @@ const RightColumn = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
-    height: 50vh;
+    height: 40vh;
   }  
 `;
 
@@ -384,4 +399,21 @@ const PlaceContent = styled.div`
   font-size: 16px;
   font-weight: bold;
   color: #333;
+`;
+
+// 스켈레톤 UI를 위한 스타일
+const SkeletonResultItem = styled.div`
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  height: 60px;
+  padding: 8px;
+  background-color: #f0f0f0;
+`;
+
+const ResultInfo = styled.div`
+  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 `;

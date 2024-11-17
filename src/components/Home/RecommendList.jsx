@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FaStar, FaCheck, FaPlus } from "react-icons/fa";
-import logo from '../assets/logo.png'; // 로고 이미지 import
+import logo from '../../assets/logo_img/logo.png'; // 로고 이미지 import
 
 
 const RecommendList = ({ places, onSelectPlace }) => {

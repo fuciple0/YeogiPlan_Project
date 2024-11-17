@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import RecommendList from './RecommendList';
 import { Skeleton } from '@mui/material';
-import DateSelectModal from './DateSelectModal';
+import DateSelectModal from '../Planning/DateSelectModal';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { addTripData } from '../store/placeSlice';
+import { addTripData } from '../../store/placeSlice';
 import { useSelector } from 'react-redux';
 
 const BestCardDetailRecommend = ({ item, onClose }) => {
@@ -20,6 +20,7 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
 
   // userSlice에서 user_id 가져오기
   const userId = useSelector((state) => state.user.userInfo.userId);
+  const isLoggedIn = useSelector((state) => state.user.isLoggedIn); // 로그인 상태 확인
 
   useEffect(() => {
     const fetchDescription = async () => {
@@ -51,9 +52,14 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
     fetchDescription();
   }, [item]);
 
-  // 일정 추가 버튼 클릭 시 일정 날짜 선택 모달을 여는 함수
+  // 일정 추가 버튼 클릭 시 로그인 상태 확인 후 모달 열기
   const handleAddSchedule = () => {
-    setIsDateSelectOpen(true);
+    if (!isLoggedIn) {
+      alert('로그인이 필요합니다.');
+      navigate('/login'); // 로그인 페이지로 이동
+    } else {
+      setIsDateSelectOpen(true); // 로그인 상태가 확인되면 모달 열기
+    }
   };
 
   // 일정 날짜 선택 모달 닫기

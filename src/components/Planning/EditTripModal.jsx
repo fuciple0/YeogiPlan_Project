@@ -9,6 +9,8 @@ const EditTripModal = ({ open, onClose, tripData, onSave }) => {
 
   // 초기값 설정
   useEffect(() => {
+    console.log('Received tripData:', tripData);  // tripData 로그 확인
+
     if (tripData) {
       setTripTitle(tripData.tripTitle || '');
       setStartDate(tripData.startDate || '');
@@ -17,7 +19,12 @@ const EditTripModal = ({ open, onClose, tripData, onSave }) => {
   }, [tripData]);
 
   const handleSave = async () => {
-    console.log("trip_plan_id:", tripData.trip_plan_id);  // trip_plan_id 값 확인
+    if(!tripData?.trip_plan_id) {
+      console.error("trip_plan_id가 없습니다.")  // trip_plan_id가 없으면 오류 메시지 출력
+      return;
+    }
+
+    console.log("trip_plan_id: ", tripData.trip_plan_id)  // trip_plan_id 값 확인
 
     try {
       // 서버에 수정된 여행 정보 보내기 (PUT 요청)
@@ -31,7 +38,7 @@ const EditTripModal = ({ open, onClose, tripData, onSave }) => {
           start_date: startDate,      // 수정된 시작 날짜
           end_date: endDate,          // 수정된 종료 날짜
           destination: tripData.destination, // 기존 목적지 그대로
-          route_shared: tripData.route_shared, // 기존 공유 여부 그대로
+          route_shared: "private",
         }),
       });
 
