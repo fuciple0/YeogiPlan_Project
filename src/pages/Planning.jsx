@@ -4,10 +4,14 @@ import dayjs from 'dayjs';
 import styled from 'styled-components';
 import InviteEmailModal from '../components/Planning/InviteEmailModal';
 import AddPlacesModal from '../components/Planning/AddPlacesModal';
-import { updateTripData, addPlace, fetchSharedTripPlans, setCurrentTripId, fetchTripDetails } from '../store/placeSlice';
+import { updateTripData, addPlace, fetchSharedTripPlans, setCurrentTripId, fetchTripDetails, deletePlace, deleteTrip } from '../store/placeSlice';
 import EditTripModal from '../components/Planning/EditTripModal';
 import MapComponent from '../components/Planning/MapComponent';
 import { Skeleton } from '@mui/material';
+import DeletePlacesModal from '../components/Planning/DeletePlacesModal';
+import { FaRegTrashCan } from "react-icons/fa6";
+import { TiDelete } from "react-icons/ti"; // X자 모양 아이콘
+import DeleteTripModal from '../components/Planning/DeleteTripModal';
 
 const Planning = () => {
   const dispatch = useDispatch();
@@ -22,6 +26,12 @@ const Planning = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isAddPlacesModalOpen, setIsAddPlacesModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [isDeletePlaceModalOpen, setIsDeletePlaceModalOpen] = useState(false);  // 장소 삭제 모달 상태
+  const [isDeleteTripModalOpen, setIsDeleteTripModalOpen] = useState(false);  // 여행 일정 삭제 모달 상태
+  const [tripToDelete, setTripToDelete] = useState(null);  // 삭제할 여행 ID 저장
+  const [placeToDelete, setPlaceToDelete] = useState(null);  // 삭제할 장소의 ID 저장
+
   const [currentDay, setCurrentDay] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -92,6 +102,47 @@ const Planning = () => {
     setIsEditModalOpen(false);
   };
 
+    // 장소 삭제 모달 열기
+  const openDeletePlaceModal = (placeId) => {
+    setPlaceToDelete(placeId); // 삭제할 장소 ID 저장
+    setIsDeletePlaceModalOpen(true); // 장소 삭제 모달 열기
+  };
+
+  // 여행 삭제 모달 열기
+  const openDeleteTripModal = (tripPlanId) => {
+    setTripToDelete(tripPlanId); // 삭제할 여행 ID 저장
+    setIsDeleteTripModalOpen(true); // 여행 삭제 모달 열기
+  };
+
+  // 장소 삭제 확인 후 처리
+  const handleConfirmDeletePlace = () => {
+    if (placeToDelete !== null) {
+      dispatch(deletePlace(placeToDelete)); // 장소 삭제
+    }
+    setIsDeletePlaceModalOpen(false); // 장소 삭제 모달 닫기
+    setPlaceToDelete(null); // 삭제할 장소 ID 초기화
+  };
+
+  // 여행 삭제 확인 후 처리
+  const handleConfirmDeleteTrip = () => {
+    if (tripToDelete !== null) {
+      dispatch(deleteTrip(tripToDelete)); // 여행 삭제
+    }
+    setIsDeleteTripModalOpen(false); // 여행 삭제 모달 닫기
+    setTripToDelete(null); // 삭제할 여행 ID 초기화
+  };
+
+  // 취소 시 모달 닫기
+  const handleCancelDeletePlace = () => {
+    setIsDeletePlaceModalOpen(false); // 모달 닫기
+    setPlaceToDelete(null); // 삭제할 장소 ID 초기화
+  };
+
+  const handleCancelDeleteTrip = () => {
+    setIsDeleteTripModalOpen(false); // 모달 닫기
+    setTripToDelete(null); // 삭제할 여행 ID 초기화
+  };
+
   const handleInviteButtonClick = () => setIsInviteModalOpen(true);
   const handleInviteModalClose = () => setIsInviteModalOpen(false);
   const openAddPlacesModal = (dayIndex) => { setCurrentDay(dayIndex); setIsAddPlacesModalOpen(true); };
@@ -130,6 +181,10 @@ const Planning = () => {
         <LeftColumn>
           <TripInfo>
           <TripTitle>{selectedTrip ? selectedTrip.trip_plan_title : '여행 제목'}</TripTitle>
+            {/* X 버튼 추가: 여행 제목 오른쪽 끝에 배치 */}
+            <DeleteTripButton onClick={() => openDeleteTripModal(selectedTrip.trip_plan_id)}>
+              <TiDelete size={26} />
+            </DeleteTripButton>
           <TripDestination>{selectedTrip ? selectedTrip.destination : '목적지 정보 없음'}</TripDestination>
           <TripDates>
           {selectedTrip ? dayjs(selectedTrip.start_date).format('YYYY.MM.DD') : ''} - {selectedTrip ? dayjs(selectedTrip.end_date).format('MM.DD') : ''}
@@ -160,6 +215,9 @@ const Planning = () => {
                         <OrderNumber>{place.order_no}</OrderNumber>
                         <PlaceItem>
                           <PlaceContent>{place.place_name}</PlaceContent>
+                          <DeleteButton onClick={() => openDeletePlaceModal(place.trip_plan_detail_id)}>
+                            <FaRegTrashCan size={20} /> {/* 휴지통 아이콘 */}   
+                          </DeleteButton>  {/* 삭제 버튼 추가 */}
                         </PlaceItem>
                       </PlaceContainer>
                     ))
@@ -193,6 +251,20 @@ const Planning = () => {
           onConfirm={() => {}}
         />
       )}
+
+      {/* 여행 삭제 모달 */}
+      <DeleteTripModal
+        isOpen={isDeleteTripModalOpen}
+        onClose={handleCancelDeleteTrip}
+        onConfirm={handleConfirmDeleteTrip}
+      />
+
+      {/* 장소 삭제 모달 */}
+      <DeletePlacesModal
+        isOpen={isDeletePlaceModalOpen}
+        onClose={handleCancelDeletePlace}
+        onConfirm={handleConfirmDeletePlace}
+      />
     </Container>
   );
 };
@@ -271,12 +343,34 @@ const MapWrapper = styled.div`
 const TripInfo = styled.div`
   text-align: left;
   margin-bottom: 20px;
+  position: relative; /* X 버튼을 위치시키기 위해 상대적 위치 지정 */
 `;
 
 const TripTitle = styled.h1`
   font-size: 28px;
   font-weight: bold;
   margin: 0;
+`;
+
+const DeleteTripButton = styled.button`
+  position: absolute;
+  right: 0;
+  top: 8px;
+  background: none;
+  border: none;
+  color: black;
+  cursor: pointer;
+  font-size: 20px;
+  
+  &:hover {
+    color: red;
+    transition: color 0.3s ease; /* 색상 변화가 0.3초 동안 부드럽게 진행되도록 설정 */
+  }
+
+  &:active {
+    color: darkred;
+    transform: scale(0.94);
+  }
 `;
 
 const TripDestination = styled.div`
@@ -305,9 +399,14 @@ const EditButton = styled.button`
   border-radius: 20px;
   font-size: 14px;
   cursor: pointer;
+  transition: background-color 0.3s;
 
   &:hover {
     background-color: #e87a00;
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
@@ -401,14 +500,22 @@ const PlaceContent = styled.div`
   color: #333;
 `;
 
-// 스켈레톤 UI를 위한 스타일
-const SkeletonResultItem = styled.div`
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-  height: 60px;
-  padding: 8px;
-  background-color: #f0f0f0;
+const DeleteButton = styled.button`
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+
+  &:hover {
+    color: red;
+    transition: color 0.3s ease; /* 색상 변화가 0.3초 동안 부드럽게 진행되도록 설정 */
+  }
+
+  &:active {
+    color: darkred; /* 클릭 시 아이콘 색상 변화 */
+    transform: scale(0.90); /* 클릭 시 크기 변화 */
+    transition: transform 0.1s ease; /* 클릭 효과에 대한 부드러운 전환 */
+  }
 `;
 
 const ResultInfo = styled.div`
