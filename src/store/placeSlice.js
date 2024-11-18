@@ -126,7 +126,19 @@ export const placeSlice = createSlice({
     
     addPlace: (state, action) => {
       const { dayIndex, newPlace } = action.payload;
-      // state.selectedPlaces[dayIndex].push(newPlace);
+
+      // 해당 dayIndex에 있는 장소들만 필터링
+      const existingPlaces = state.selectedPlaces.filter((place) => place.trip_day === dayIndex + 1);
+
+      // 새로운 장소의 order_no 계산
+      const newOrderNo = existingPlaces.length + 1;
+
+      const updatedPlaces = [
+        ...state.selectedPlaces,
+        { ...newPlace, trip_day: dayIndex + 1, order_no: newOrderNo },
+      ];
+
+      state.selectedPlaces = updatedPlaces;
     },
     // 새로운 액션을 추가: 여행 데이터와 장소들을 Redux에 저장
     addTripData: (state, action) => {

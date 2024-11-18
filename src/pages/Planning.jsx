@@ -210,10 +210,11 @@ const Planning = () => {
                   // 로딩이 끝나면 실제 장소 리스트 표시
                   selectedPlaces
                     .filter((place) => place.trip_day === dayIndex + 1)
-                    .map((place) => (
+                    .sort((a, b) => a.order_no - b.order_no) // order_no 순서로 정렬
+                    .map((place, index) => (
                       <PlaceContainer key={place.trip_plan_detail_id}>
-                        <OrderNumber>{place.order_no}</OrderNumber>
-                        <PlaceItem>
+                            <OrderNumber>{place.order_no || index + 1}</OrderNumber>
+                            <PlaceItem>
                           <PlaceContent>{place.place_name}</PlaceContent>
                           <DeleteButton onClick={() => openDeletePlaceModal(place.trip_plan_detail_id)}>
                             <FaRegTrashCan size={20} /> {/* 휴지통 아이콘 */}   
