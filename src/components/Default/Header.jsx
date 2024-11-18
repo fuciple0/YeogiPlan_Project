@@ -25,6 +25,7 @@ const Logo = styled.img`
   max-width: 150px;
   height: auto;
   margin-right: 10px;
+  cursor: pointer;
 `;
 
 const NavList = styled.ul`
@@ -150,7 +151,9 @@ const Header = () => {
   return (
     <HeaderContainer>
       <LogoSection>
-        <Logo src={logo} alt="logo" />
+        <Link to="/">
+          <Logo src={logo} alt="logo" />
+        </Link>
       </LogoSection>
       
       <nav>
