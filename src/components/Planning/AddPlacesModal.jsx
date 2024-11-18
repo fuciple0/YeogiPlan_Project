@@ -15,6 +15,11 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm, dayIndex, tripId }) => {
     const dispatch = useDispatch();
     const userId = useSelector((state) => state.user.userInfo.userId); // userId 가져오기
 
+    // Redux에서 현재 dayIndex에 해당하는 기존 장소 가져오기
+    const existingPlaces = useSelector((state) =>
+        state.places.selectedPlaces.filter((place) => place.trip_day === dayIndex + 1)
+    );
+
     const handleKeyPress = (event) => {
         if (event.key === 'Enter') {
             handleSearch()
@@ -70,54 +75,51 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm, dayIndex, tripId }) => {
             return;
         }
 
-        // 1. Redux에 장소 추가
-        selectedItems.forEach((item) => {
-            const newPlace = {
-                ...item,
-                trip_day: dayIndex + 1,  // DAY 인덱스를 1부터 시작하도록 설정
-                order_no: selectedItems.indexOf(item) + 1, // 선택한 순서로 번호 부여
-            }
-            dispatch(addPlace({ dayIndex, newPlace }))
-
-        })
-        
-        // 2. 데이터베이스에 장소 추가
         try {
-            await Promise.all
-            (selectedItems.map(async (place, index) => {
-                const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripId}/detail`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: userId,
+            // Redux 상태와 서버 동기화
+            await Promise.all(
+                selectedItems.map(async (place, index) => {
+                    const orderNo = existingPlaces.length + index + 1; // 기존 장소 기반 order_no 계산
+                    const newPlace = {
+                        ...place,
                         trip_day: dayIndex + 1,
-                        place_name: place.name,
-                        place_name_x: place.location.lat,
-                        place_name_y: place.location.lng,
-                        place_id: place.place_id,
-                        memo: null,
-                        memo_type: "love",
-                        order_no: index + 1,
-                        review_id: null,
-                    }),
-                });
-        
-                // 응답 상태 코드와 응답 데이터 확인
-                console.log("Response Status:", response.status);
-                const data = await response.json();
-                console.log("Response Data:", data);
-        
-                if (!response.ok) throw new Error("데이터베이스 저장 실패");
-                console.log("장소 저장 성공: ", place.name);
-            }));
+                        order_no: orderNo,
+                    };
+                    dispatch(addPlace({ dayIndex, newPlace }));
+
+                    // 서버에 데이터 추가
+                    const response = await fetch(
+                        `http://15.164.142.129:3001/api/trip_plan/${tripId}/detail`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                user_id: userId,
+                                trip_day: dayIndex + 1,
+                                place_name: place.name,
+                                place_name_x: place.location.lat,
+                                place_name_y: place.location.lng,
+                                place_id: place.place_id,
+                                memo: null,
+                                memo_type: "love",
+                                order_no: orderNo, // 서버에 동기화된 order_no 전달
+                                review_id: null,
+                            }),
+                        }
+                    );
+
+                    if (!response.ok) throw new Error("데이터베이스 저장 실패");
+                })
+            );
+
             console.log("장소가 성공적으로 추가되었습니다!");
             onConfirm(selectedItems);
         } catch (error) {
             console.error("장소 추가 중 오류: ", error);
             alert("장소 추가에 실패했습니다. 서버 오류: " + error.message);
+        } finally {
+            handleClose();
         }
-        
-        handleClose();
     };
 
     if (!isOpen) return null;
