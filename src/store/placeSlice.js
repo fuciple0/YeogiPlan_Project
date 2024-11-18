@@ -31,15 +31,15 @@ export const fetchTripDetails = createAsyncThunk(
       console.log("data: ", data)
       // 장소마다 경도와 위도를 가져오는 API 호출
       const updatedPlaces = await Promise.all(data.data.map(async (place) => {
-        const locationResponse = await fetch(`http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${place.place_name}`);
+        const locationResponse = await fetch(`http://3.36.99.105:3001/googleApi/keywordSearch?searchTerm=${place.place_name}`);
         const locationData = await locationResponse.json();
         console.log("locationData: ", locationData)
-        
+
         if (locationData.places && locationData.places.length > 0) {
           place.lat = locationData.places[0].location.lat;
           place.lng = locationData.places[0].location.lng;
         }
-        
+
         return place;
       }));
       // 업데이트 된 장소 정보를 Redux 상태에 저장
@@ -71,7 +71,7 @@ export const deletePlace = createAsyncThunk(
       // Redux 상태에서 삭제할 trip_plan_detail_id를 기반으로 필터링하여 삭제
       const { selectedPlaces } = getState().places;
       const updatedPlaces = selectedPlaces.filter(place => place.trip_plan_detail_id !== tripPlanDetailId)
-      
+
       return updatedPlaces; // 업데이트된 장소 배열 반환
     } catch (error) {
       return rejectWithValue(error.message)
@@ -93,7 +93,7 @@ export const deleteTrip = createAsyncThunk(
         return rejectWithValue(data.message)
       }
     } catch (error) {
-    return rejectWithValue(error.message)
+      return rejectWithValue(error.message)
     }
   }
 )
@@ -123,7 +123,7 @@ export const placeSlice = createSlice({
     setCurrentTripId: (state, action) => {
       state.currentTripId = action.payload;
     },
-    
+
     addPlace: (state, action) => {
       const { dayIndex, newPlace } = action.payload;
 
@@ -142,11 +142,11 @@ export const placeSlice = createSlice({
     },
     // 새로운 액션을 추가: 여행 데이터와 장소들을 Redux에 저장
     addTripData: (state, action) => {
-        // dayIndex에 해당하는 항목이 배열인지 확인하고, 배열이 아니면 초기화
-        if (!Array.isArray(state.selectedPlaces[dayIndex])) {
-          state.selectedPlaces[dayIndex] = []; // 배열로 초기화
-        }      
-        state.selectedPlaces = action.payload.places;  // 선택된 장소들
+      // dayIndex에 해당하는 항목이 배열인지 확인하고, 배열이 아니면 초기화
+      if (!Array.isArray(state.selectedPlaces[dayIndex])) {
+        state.selectedPlaces[dayIndex] = []; // 배열로 초기화
+      }
+      state.selectedPlaces = action.payload.places;  // 선택된 장소들
     },
   },
   extraReducers: (builder) => {

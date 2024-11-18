@@ -11,7 +11,7 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm, dayIndex, tripId }) => {
     const [searchResults, setSearchResults] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    
+
     const dispatch = useDispatch();
     const userId = useSelector((state) => state.user.userInfo.userId); // userId 가져오기
 
@@ -31,7 +31,7 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm, dayIndex, tripId }) => {
 
         setIsLoading(true);
 
-        const url = `http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${searchInput}`;
+        const url = `http://3.36.99.105:3001/googleApi/keywordSearch?searchTerm=${searchInput}`;
 
         try {
             const response = await fetch(url);
@@ -128,13 +128,13 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm, dayIndex, tripId }) => {
         <Overlay onClick={handleClose}>
             <ModalContent onClick={(e) => e.stopPropagation()}>
                 <SearchContainer>
-                    <SearchInput 
-                        value={searchInput} 
+                    <SearchInput
+                        value={searchInput}
                         onChange={handleInputChange}
                         placeholder="장소를 검색해보세요"
-                        onKeyPress={handleKeyPress} 
+                        onKeyPress={handleKeyPress}
                     />
-                    <SearchButton onClick={handleSearch}>검색</SearchButton> 
+                    <SearchButton onClick={handleSearch}>검색</SearchButton>
                 </SearchContainer>
 
                 <ResultsHeader>검색 결과</ResultsHeader>
@@ -156,7 +156,7 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm, dayIndex, tripId }) => {
                                 <ResultInfo>
                                     <ResultTitle>{result.name}</ResultTitle>
                                     <ResultDescription>
-                                        <FaStar color="#ffb535" size={16}/> {/* 별 아이콘 */}
+                                        <FaStar color="#ffb535" size={16} /> {/* 별 아이콘 */}
                                         <span>{result.rating ? result.rating.toFixed(1) : "없음"}</span> {/* 별점 수 표시 */}
                                     </ResultDescription>
                                 </ResultInfo>

@@ -11,7 +11,7 @@ import ReviewList from './ReviewList';
 const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
 
   if (!isOpen || !place) return null;
- 
+
 
   const [apiData, setApiData] = useState(null);
   const [rating, setRating] = useState(4.8);  // 기본 rating 값
@@ -23,7 +23,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
 
   useEffect(() => {
     if (place && place.name) {
-      fetch(`http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${encodeURIComponent(place.name)}`)
+      fetch(`http://3.36.99.105:3001/googleApi/keywordSearch?searchTerm=${encodeURIComponent(place.name)}`)
         .then(response => response.json())
         .then(data => {
           if (data.places && data.places[0]) {
@@ -49,7 +49,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
   const handleRatingClick = (rate) => {
     setRating(rate);
     setShowReviewForm(true);
-    // setShowReviewList(true); 
+    // setShowReviewList(true);
   };
 
   const handleReviewSubmit = (reviewText, selectedImages) => {
@@ -104,7 +104,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
               </Details>
             </InfoContainer>
           </TopSection>
-  
+
           <BottomSection>
             <ReviewTitle>리뷰</ReviewTitle>
             <StarContainer>
@@ -132,16 +132,16 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
                 />
               )}
             </ReviewFormContainer>
-            
-           
+
+
             <ReviewList placeId={placeId} />
-           
+
           </BottomSection>
         </ContentWrapper>
       </ModalContent>
     </Overlay>
   );
-} 
+}
 
 export default DetailPlaceInfoModal;
 
