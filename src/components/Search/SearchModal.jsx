@@ -32,7 +32,7 @@ const SearchModal = ({ isOpen, onClose }) => {
 
         setIsLoading(true);
 
-        const url = `http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${searchInput}`;
+        const url = `http://3.36.99.105:3001/googleApi/keywordSearch?searchTerm=${searchInput}`;
 
         try {
             const response = await fetch(url);
@@ -152,13 +152,13 @@ const SearchModal = ({ isOpen, onClose }) => {
             <Overlay onClick={handleClose}>
                 <ModalContent onClick={(e) => e.stopPropagation()}>
                     <SearchContainer>
-                        <SearchInput 
-                            value={searchInput} 
+                        <SearchInput
+                            value={searchInput}
                             onChange={handleInputChange}
-                            placeholder="장소를 검색해보세요" 
+                            placeholder="장소를 검색해보세요"
                             onKeyPress={handleKeyPress}
                         />
-                        <SearchButton onClick={handleSearch}>검색</SearchButton> 
+                        <SearchButton onClick={handleSearch}>검색</SearchButton>
                     </SearchContainer>
 
                     <ResultsHeader>검색결과</ResultsHeader>
@@ -181,7 +181,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                                     <ResultInfo>
                                         <ResultTitle>{result.name}</ResultTitle>
                                         <ResultDescription>
-                                            <FaStar color="#ffb535" size={16}/> {/* 별 아이콘 */}
+                                            <FaStar color="#ffb535" size={16} /> {/* 별 아이콘 */}
                                             <span>{result.rating ? result.rating.toFixed(1) : "없음"}</span> {/* 별점 수 표시 */}
                                         </ResultDescription>
                                     </ResultInfo>

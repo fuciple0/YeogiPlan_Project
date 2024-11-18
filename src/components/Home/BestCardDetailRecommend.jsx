@@ -25,14 +25,14 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
   useEffect(() => {
     const fetchDescription = async () => {
       try {
-        const keywordResponse = await fetch(`http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${item.name}`);
+        const keywordResponse = await fetch(`http://3.36.99.105:3001/googleApi/keywordSearch?searchTerm=${item.name}`);
         const keywordData = await keywordResponse.json();
 
         if (keywordData.places && keywordData.places[0]) {
           const place = keywordData.places[0];
           setDescription(place.description || '정보를 가져올 수 없습니다.');
 
-          const nearbyResponse = await fetch(`http://43.201.36.203:3001/googleApi/nearbySearch?searchTerm=${item.name}`);
+          const nearbyResponse = await fetch(`http://3.36.99.105:3001/googleApi/nearbySearch?searchTerm=${item.name}`);
           const data = await nearbyResponse.json();
 
           if (data && data.nearbyPlaces && Array.isArray(data.nearbyPlaces)) {
@@ -68,58 +68,58 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
   };
 
 
-// DateSelectModal에서 날짜 선택 후 확인 버튼 클릭 시 처리 함수
-const handleDateSelectConfirm = async (tripDataWithId) => {
-  console.log("Received tripDataWithId:", tripDataWithId); // tripDataWithId 확인
+  // DateSelectModal에서 날짜 선택 후 확인 버튼 클릭 시 처리 함수
+  const handleDateSelectConfirm = async (tripDataWithId) => {
+    console.log("Received tripDataWithId:", tripDataWithId); // tripDataWithId 확인
 
-  const tripPlanId = tripDataWithId.trip_plan_id;
-  console.log("tripPlanId:", tripPlanId);
+    const tripPlanId = tripDataWithId.trip_plan_id;
+    console.log("tripPlanId:", tripPlanId);
 
-  // Redux에 tripData와 선택된 장소들 저장
-  const updatedPlacesWithId = await Promise.all(
-    selectedPlaces.map(async (place, index) => {
-      try {
-        const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripPlanId}/detail`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId || 1,
-            trip_day: 1,
-            place_name: place.name,
-            place_name_x: place.location.lat,
-            place_name_y: place.location.lng,
-            place_id: place.place_id,
-            memo: null,
-            memo_type: "love",
-            order_no: index + 1,
-            review_id: null,
-          }),
-        });
+    // Redux에 tripData와 선택된 장소들 저장
+    const updatedPlacesWithId = await Promise.all(
+      selectedPlaces.map(async (place, index) => {
+        try {
+          const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripPlanId}/detail`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user_id: userId || 1,
+              trip_day: 1,
+              place_name: place.name,
+              place_name_x: place.location.lat,
+              place_name_y: place.location.lng,
+              place_id: place.place_id,
+              memo: null,
+              memo_type: "love",
+              order_no: index + 1,
+              review_id: null,
+            }),
+          });
 
-        const result = await response.json();
+          const result = await response.json();
 
-        if (response.ok && result.success) {
-          console.log("장소 저장 성공:", place.name);
-          // 반환된 trip_plan_detail_id와 order_no를 place 객체에 추가
-          return { 
-            ...place, 
-            order_no: result.data.order_no, 
-            trip_plan_detail_id: result.data.trip_plan_detail_id, 
-            location: { lat: place.location.lat, lng: place.location.lng }, // 경도, 위도 포함
-          };
-        } else {
-          console.error("장소 저장 실패:", result.message || response.statusText);
+          if (response.ok && result.success) {
+            console.log("장소 저장 성공:", place.name);
+            // 반환된 trip_plan_detail_id와 order_no를 place 객체에 추가
+            return {
+              ...place,
+              order_no: result.data.order_no,
+              trip_plan_detail_id: result.data.trip_plan_detail_id,
+              location: { lat: place.location.lat, lng: place.location.lng }, // 경도, 위도 포함
+            };
+          } else {
+            console.error("장소 저장 실패:", result.message || response.statusText);
+            return null;
+          }
+        } catch (error) {
+          console.error("API 호출 중 오류:", error);
           return null;
         }
-      } catch (error) {
-        console.error("API 호출 중 오류:", error);
-        return null;
-      }
-       })
+      })
     );
-  
+
     // 성공적으로 저장된 장소만 Redux에 추가
     const successfulPlaces = updatedPlacesWithId.filter(place => place !== null);
 

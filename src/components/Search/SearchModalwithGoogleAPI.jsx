@@ -51,7 +51,7 @@ const SearchModalgoogle = ({ isOpen, onClose }) => {
 
   const fetchPlacesFromServer = async (query) => {
     const response = await fetch(
-      `http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${query}`
+      `http://3.36.99.105:3001/googleApi/keywordSearch?searchTerm=${query}`
     );
     const data = await response.json();
     console.log('Fetched Data:', data);
@@ -63,7 +63,7 @@ const SearchModalgoogle = ({ isOpen, onClose }) => {
 
     try {
       const response = await fetch(
-        `http://43.201.36.203:3001/googleApi/getPlacePhoto?photoreference=${photoReference}`
+        `http://3.36.99.105:3001/googleApi/getPlacePhoto?photoreference=${photoReference}`
       );
       const blob = await response.blob();
       const photoUrl = URL.createObjectURL(blob);
