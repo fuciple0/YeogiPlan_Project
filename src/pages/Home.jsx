@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import SearchBar from '../components/SearchBar';
-import MainCarousel from '../components/MainCarousel';
-import SearchModal from '../components/SearchModal';
-import BestCardSlider from '../components/BestCardSlider';
-import RecommendPlaceCard from '../components/RecommendPlaceCard';
+import SearchBar from '../components/Search/SearchBar';
+import MainCarousel from '../components/Home/MainCarousel';
+import SearchModal from '../components/Search/SearchModal';
+import BestCardSlider from '../components/Home/BestCardSlider';
+import RecommendPlaceCard from '../components/Home/RecommendPlaceCard';
 import DetailPlaceInfoModal from '../components/Review/DetailPlaceInfoModal';
 import Planning from './Planning';
 import { addTripData } from '../store/placeSlice'; // Redux 액션 임포트

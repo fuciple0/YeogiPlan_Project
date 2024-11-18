@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { Dialog, DialogActions, Button, TextField } from '@mui/material';
 import dayjs from 'dayjs';
 import { useDispatch } from "react-redux";
-import { addTripData } from '../store/placeSlice';
+import { addTripData } from '../../store/placeSlice';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useSelector } from 'react-redux';
@@ -77,6 +77,8 @@ const DateSelectModal = ({ open, onClose, onConfirm, selectedPlaces, defaultTrip
       endDate: formattedEndDate,
       created_at: createdAt,
     };
+
+    console.log("tripdata: ", tripData)
   
     try {
       // tripData를 데이터베이스에 저장하고 trip_plan_id를 받아옴

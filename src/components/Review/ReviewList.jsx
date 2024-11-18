@@ -4,32 +4,29 @@ import styled from 'styled-components'
 import { FaStar, FaThumbsUp, FaRegThumbsUp } from 'react-icons/fa'
 import defaultProfileImage from '../../assets/user_profile.png'; 
 import DetailPlaceInfoModal from './DetailPlaceInfoModal';
+import ReviewForm from './ReviewForm';
 
 
-
-
-// 리뷰 데이터 가져오기
+// 리뷰 데이터 가져오기 함수
 const fetchPlaceReviews = async (place_id) => {
-  
   try {
     const response = await fetch(`http://15.164.142.129:3001/api/reviews/place/${place_id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        
       },
     });
 
     if (response.ok) {
       const data = await response.json();
-      console.log("서버에서 가져온 데이터:", data);
-      return data.reviews || [];
+      console.log('서버에서 가져온 리뷰 데이터:', data);
+      return data || [];
     } else {
-      console.error("리뷰 조회에 실패했습니다.");
+      console.error('리뷰 조회에 실패했습니다.');
       return [];
     }
   } catch (error) {
-    console.error("Error:", error);
+    console.error('Error:', error);
     return [];
   }
 };
@@ -38,76 +35,87 @@ const fetchPlaceReviews = async (place_id) => {
 // 리뷰 목록 컴포넌트
 const ReviewList = ({ placeId }) => {
   const [reviews, setReviews] = useState([]);
- 
 
   // 리뷰 데이터 불러오기
   useEffect(() => {
     const loadReviews = async () => {
-      const data = await fetchPlaceReviews(placeId);
-      console.log("받아온 리뷰 데이터:", data); // 데이터 확인
-      setReviews(data);
-     };
+      if (placeId) {
+        const data = await fetchPlaceReviews(placeId);
+        setReviews(data);
+      }
+    };
     loadReviews();
-   }, [placeId]);
-  console.log("리뷰 목록 렌더링:", reviews);
+  }, [placeId]);
 
-
-
-    // // 리뷰 상태 변경 시 로그 출력
-    // useEffect(() => {
-    //   console.log("업데이트된 리뷰 목록:", reviews); // reviews 상태가 업데이트된 후의 데이터를 확인
-    // }, [reviews]);
+  // 새로운 리뷰 추가 핸들러
+const handleReviewSubmit = (newReview) => {
+  setReviews((prevReviews) => [newReview, ...prevReviews]); // 새 리뷰를 기존 리뷰의 앞에 추가
+};
 
 
 
   return (
     <ReviewContainer>
-      {reviews.map((review) => (
+      {/* 리뷰 작성 컴포넌트 */}
+      {/* <ReviewForm placeId={placeId} onSubmit={handleReviewSubmit} /> */}
+      {reviews.length > 0 ? (
+      reviews.map((review) => (
         <ReviewItem key={review.review_id}>
-          <ProfileSection>
-          <ProfileImage src={review.profile_photo ? `http://15.164.142.129:3001/${review.profile_photo}` : defaultProfileImage} alt="프로필 이미지" />
-            <NickAndRating>
-              <Nickname>{review.username}</Nickname>
-              <Rating>
-                {[...Array(5)].map((_, i) => (
-                  <FaStar key={i} color={i < review.rating ? '#FFC978' : '#ddd'} />
+            <ProfileSection>
+              <ProfileImage
+                src={review.profile_photo ? `http://15.164.142.129:3001/${review.profile_photo}` : defaultProfileImage}
+                alt="프로필 이미지"
+              />
+              <NickAndRating>
+                <Nickname>{review.nickname}</Nickname>
+                <Rating>
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} color={i < review.rating ? '#FFC978' : '#ddd'} />
+                  ))}
+                </Rating>
+              </NickAndRating>
+            </ProfileSection>
+            <ReviewText>{review.comment}</ReviewText>
+            {review.photo_urls && review.photo_urls.length > 0 && (
+              <ImageContainer>
+                {review.photo_urls.map((photo, index) => (
+                  <ReviewImage
+                    key={index}
+                    src={`http://15.164.142.129:3001/${photo}`}
+                    alt={`리뷰 이미지 ${index + 1}`}
+                  />
                 ))}
-              </Rating>
-            </NickAndRating>
-          </ProfileSection>
-          <ReviewText>{review.comment}</ReviewText>
-          {review.photo_urls && review.photo_urls.length > 0 && (
-            <ImageContainer>
-              {review.photo_urls.map((src, i) => (
-                <ReviewImage key={i} src={src} alt={`Review ${i + 1}`} />
-              ))}
-            </ImageContainer>
-          )}
-          <UsefulButton initialCount={review.likes_count} />
-        </ReviewItem>
-      ))}
+              </ImageContainer>
+            )}
+            <UsefulButton initialCount={review.likes_count} />
+          </ReviewItem>
+        ))
+      ) : (
+        <NoReviews>리뷰가 없습니다.</NoReviews>
+      )}
     </ReviewContainer>
   );
 };
 
-const UsefulButton = () => {
-    const [isUseful, setIsUseful] = useState(false)
-    const [usefulCount, setUsefulCount] = useState(initialCount);
+// 좋아요. 버튼 컴포넌트
+const UsefulButton = ({ initialCount }) => {
+  const [isUseful, setIsUseful] = useState(false);
+  const [usefulCount, setUsefulCount] = useState(initialCount);
 
-    const toggleUseful = () => {
-        setIsUseful(!isUseful)
-        setUsefulCount(prevCount => isUseful ? prevCount - 1 : prevCount + 1); // 상태에 따라 증가/감소
-    }
+  const toggleUseful = () => {
+    setIsUseful(!isUseful);
+    setUsefulCount((prevCount) => (isUseful ? prevCount - 1 : prevCount + 1));
+  };
 
-    return (
-        <Button onClick={toggleUseful}>
-            {isUseful ? <FaThumbsUp color='#507DBC' /> : <FaRegThumbsUp color='#666' />}
-            <UsefulText>{usefulCount}명에게 유용해요!</UsefulText>
-        </Button>
-    )
-}
+  return (
+    <Button onClick={toggleUseful}>
+      {isUseful ? <FaThumbsUp color="#507DBC" /> : <FaRegThumbsUp color="#666" />}
+      <UsefulText>{usefulCount}명에게 유용해요!</UsefulText>
+    </Button>
+  );
+};
+export default ReviewList;
 
-export default ReviewList
 
 const ReviewContainer = styled.div`
   display: flex;
@@ -191,3 +199,10 @@ const UsefulText = styled.span`
   font-size: 14px;
   color: #666;
 `
+
+const NoReviews = styled.p`
+  text-align: center;
+  color: #999;
+  font-size: 16px;
+  margin-top: 20px;
+`;

@@ -11,64 +11,52 @@ const ReviewForm = ({ onSubmit, onCancel, selectedTripPlan = [], placeId, placeN
 
   const userInfo = useSelector((state) => state.user.userInfo); // Redux에서 userInfo 불러오기
 
-  // console.log("프롭스로 전달된 값:");
-  // console.log("placeId:", placeId);
-  // console.log("placeName:", placeName);
-  // console.log("rating:", rating);
-  // console.log("userId:", userInfo?.userId); // Redux에서 가져온 userId 확인
-
-  
-
   // 이미지 변경 시 이벤트 핸들러
   const handleImageChange = (event) => {
     const files = Array.from(event.target.files).slice(0, 10); // 최대 10개 파일 제한
     setSelectedImages((prevImages) => [...prevImages, ...files]);
   };
 
-  // 리뷰 제출 핸들러
-  const handleSubmit = async () => {
-    const data = {
-      trip_plan_title: selectedTripPlan[0]?.title || "여행 제목 없음", // 여행 제목 기본값 설정
-      place_id: placeId, // 프롭으로 받은 placeId 사용
-      place_name: placeName, // 프롭으로 받은 placeName 사용
-      rating, // 프롭으로 받은 rating 값 사용
-      comment: reviewText,
-      user_id: userInfo.userId, // userInfo는 Redux 등에서 별도로 설정 필요
-      photo_urls: selectedImages.slice(0, 10).map((image) => URL.createObjectURL(image)), // 이미지 최대 10개로 제한
-    };
+   // 리뷰 제출 핸들러
+   const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append("trip_plan_title", selectedTripPlan[0]?.title || "여행 제목 없음");
+    formData.append("place_id", placeId);
+    formData.append("place_name", placeName);
+    formData.append("rating", rating);
+    formData.append("comment", reviewText);
+    formData.append("user_id", userInfo.userId);
 
-    // API 호출 전에 데이터 로그 출력
-    console.log("전송할 리뷰 데이터:", data);
+     // 이미지를 FormData에 추가
+  selectedImages.slice(0, 10).forEach((image) => {
+    formData.append("photo_urls", image);
+  });
 
-    try {
-      const response = await fetch('http://15.164.142.129:3001/api/reviews', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+  try {
+    const response = await fetch('http://15.164.142.129:3001/api/reviews', {
+      method: 'POST',
+      body: formData, // FormData 객체 전송
+    });
 
-      if (response.status === 201) {
-        const result = await response.json();
-        console.log("리뷰 작성 성공:", result);
+    if (response.status === 201) {
+      const result = await response.json();
+      console.log("리뷰 작성 성공:", result);
 
-        // 초기화 작업
-        setReviewText('');
-        setSelectedImages([]);
-        setIsTyping(false);
+      // 초기화 작업
+      setReviewText('');
+      setSelectedImages([]);
+      setIsTyping(false);
 
-        // 부모 컴포넌트로 결과 전달
-        onSubmit(result);
-       
-      } else {
-        const errorText = await response.text();
-        console.error("리뷰 작성 실패:", errorText);
-      }
-    } catch (error) {
-      console.error("리뷰 작성 중 오류:", error);
+      // 부모 컴포넌트로 작성된 리뷰 데이터 전달
+      onSubmit(result); // 리뷰 작성 성공 후 부모에 전달
+    } else {
+      const errorText = await response.text();
+      console.error("리뷰 작성 실패:", errorText);
     }
-  };
+  } catch (error) {
+    console.error("리뷰 작성 중 오류:", error);
+  }
+};
 
   // 텍스트 변경 핸들러
   const handleTextChange = (e) => {

@@ -2,11 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import dayjs from 'dayjs';
 import styled from 'styled-components';
-import InviteEmailModal from '../components/InviteEmailModal';
-import AddPlacesModal from '../components/AddPlacesModal';
-import { updateTripData, addPlace, fetchSharedTripPlans, setCurrentTripId, fetchTripDetails } from '../store/placeSlice';
+import InviteEmailModal from '../components/Planning/InviteEmailModal';
+import AddPlacesModal from '../components/Planning/AddPlacesModal';
+import { updateTripData, addPlace, fetchSharedTripPlans, setCurrentTripId, fetchTripDetails, deletePlace, deleteTrip } from '../store/placeSlice';
 import EditTripModal from '../components/Planning/EditTripModal';
 import MapComponent from '../components/Planning/MapComponent';
+import { Skeleton } from '@mui/material';
+import DeletePlacesModal from '../components/Planning/DeletePlacesModal';
+import { FaRegTrashCan } from "react-icons/fa6";
+import { TiDelete } from "react-icons/ti"; // X자 모양 아이콘
+import DeleteTripModal from '../components/Planning/DeleteTripModal';
 
 const Planning = () => {
   const dispatch = useDispatch();
@@ -21,6 +26,12 @@ const Planning = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isAddPlacesModalOpen, setIsAddPlacesModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [isDeletePlaceModalOpen, setIsDeletePlaceModalOpen] = useState(false);  // 장소 삭제 모달 상태
+  const [isDeleteTripModalOpen, setIsDeleteTripModalOpen] = useState(false);  // 여행 일정 삭제 모달 상태
+  const [tripToDelete, setTripToDelete] = useState(null);  // 삭제할 여행 ID 저장
+  const [placeToDelete, setPlaceToDelete] = useState(null);  // 삭제할 장소의 ID 저장
+
   const [currentDay, setCurrentDay] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -82,11 +93,54 @@ const Planning = () => {
     dispatch(setCurrentTripId(tripId));
   };
 
+  const selectedTrip = tripList.find((trip) => trip.trip_plan_id === parseInt(currentTripId, 10))
+
   // 여행 정보 수정 후 Redux 상태에 저장
   const handleSaveTripData = (updatedData) => {
     // Redux에 수정된 여행 데이터를 저장
     dispatch(updateTripData(updatedData));
     setIsEditModalOpen(false);
+  };
+
+    // 장소 삭제 모달 열기
+  const openDeletePlaceModal = (placeId) => {
+    setPlaceToDelete(placeId); // 삭제할 장소 ID 저장
+    setIsDeletePlaceModalOpen(true); // 장소 삭제 모달 열기
+  };
+
+  // 여행 삭제 모달 열기
+  const openDeleteTripModal = (tripPlanId) => {
+    setTripToDelete(tripPlanId); // 삭제할 여행 ID 저장
+    setIsDeleteTripModalOpen(true); // 여행 삭제 모달 열기
+  };
+
+  // 장소 삭제 확인 후 처리
+  const handleConfirmDeletePlace = () => {
+    if (placeToDelete !== null) {
+      dispatch(deletePlace(placeToDelete)); // 장소 삭제
+    }
+    setIsDeletePlaceModalOpen(false); // 장소 삭제 모달 닫기
+    setPlaceToDelete(null); // 삭제할 장소 ID 초기화
+  };
+
+  // 여행 삭제 확인 후 처리
+  const handleConfirmDeleteTrip = () => {
+    if (tripToDelete !== null) {
+      dispatch(deleteTrip(tripToDelete)); // 여행 삭제
+    }
+    setIsDeleteTripModalOpen(false); // 여행 삭제 모달 닫기
+    setTripToDelete(null); // 삭제할 여행 ID 초기화
+  };
+
+  // 취소 시 모달 닫기
+  const handleCancelDeletePlace = () => {
+    setIsDeletePlaceModalOpen(false); // 모달 닫기
+    setPlaceToDelete(null); // 삭제할 장소 ID 초기화
+  };
+
+  const handleCancelDeleteTrip = () => {
+    setIsDeleteTripModalOpen(false); // 모달 닫기
+    setTripToDelete(null); // 삭제할 여행 ID 초기화
   };
 
   const handleInviteButtonClick = () => setIsInviteModalOpen(true);
@@ -126,11 +180,15 @@ const Planning = () => {
       <ContentWrapper>
         <LeftColumn>
           <TripInfo>
-            <TripTitle>{tripData.tripTitle || '여행 제목'}</TripTitle>
-            <TripDestination>{tripData.destination || '목적지 정보 없음'}</TripDestination>
-            <TripDates>
-              {tripData.startDate ? dayjs(tripData.startDate).format('YYYY.MM.DD') : ''} - {tripData.endDate ? dayjs(tripData.endDate).format('MM.DD') : ''}
-            </TripDates>
+          <TripTitle>{selectedTrip ? selectedTrip.trip_plan_title : '여행 제목'}</TripTitle>
+            {/* X 버튼 추가: 여행 제목 오른쪽 끝에 배치 */}
+            <DeleteTripButton onClick={() => openDeleteTripModal(selectedTrip.trip_plan_id)}>
+              <TiDelete size={26} />
+            </DeleteTripButton>
+          <TripDestination>{selectedTrip ? selectedTrip.destination : '목적지 정보 없음'}</TripDestination>
+          <TripDates>
+          {selectedTrip ? dayjs(selectedTrip.start_date).format('YYYY.MM.DD') : ''} - {selectedTrip ? dayjs(selectedTrip.end_date).format('MM.DD') : ''}
+          </TripDates>
             <ButtonContainer>
               <EditButton onClick={() => setIsEditModalOpen(true)}>수정</EditButton>
               <InviteButton onClick={handleInviteButtonClick}>+ 일행초대</InviteButton>
@@ -141,16 +199,30 @@ const Planning = () => {
             <div key={dayIndex}>
               <h2>{day}</h2>
               <PlaceList>
-                {selectedPlaces
-                  .filter((place) => place.trip_day === dayIndex + 1)
-                  .map((place) => (
-                    <PlaceContainer key={place.trip_plan_detail_id}>
-                      <OrderNumber>{place.order_no}</OrderNumber>
-                      <PlaceItem>
-                        <PlaceContent>{place.place_name}</PlaceContent>
-                      </PlaceItem>
-                    </PlaceContainer>
-                  ))}
+              {isLoading ? (
+                  // 로딩 중일 때 스켈레톤 표시
+                  Array.from({ length: 1 }).map((_, index) => (
+                      <ResultInfo>
+                        <Skeleton width="90%" height="80px" />
+                      </ResultInfo>
+                  ))
+                ) : (
+                  // 로딩이 끝나면 실제 장소 리스트 표시
+                  selectedPlaces
+                    .filter((place) => place.trip_day === dayIndex + 1)
+                    .sort((a, b) => a.order_no - b.order_no) // order_no 순서로 정렬
+                    .map((place, index) => (
+                      <PlaceContainer key={place.trip_plan_detail_id}>
+                            <OrderNumber>{place.order_no || index + 1}</OrderNumber>
+                            <PlaceItem>
+                          <PlaceContent>{place.place_name}</PlaceContent>
+                          <DeleteButton onClick={() => openDeletePlaceModal(place.trip_plan_detail_id)}>
+                            <FaRegTrashCan size={20} /> {/* 휴지통 아이콘 */}   
+                          </DeleteButton>  {/* 삭제 버튼 추가 */}
+                        </PlaceItem>
+                      </PlaceContainer>
+                    ))
+                )}
               </PlaceList>
               <AddPlaceButton onClick={() => openAddPlacesModal(dayIndex)}>+ 장소 추가</AddPlaceButton>
             </div>
@@ -167,7 +239,7 @@ const Planning = () => {
       <EditTripModal
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        tripData={tripData}
+        tripData={selectedTrip}
         onSave={handleSaveTripData}
       />
       {isInviteModalOpen && <InviteEmailModal open={isInviteModalOpen} onClose={handleInviteModalClose} />}
@@ -175,9 +247,25 @@ const Planning = () => {
         <AddPlacesModal 
           isOpen={isAddPlacesModalOpen} 
           onClose={closeAddPlacesModal} 
+          dayIndex={currentDay} // 현재 선택된 DAY 인덱스 전달
+          tripId={currentTripId} // 현재 여행 ID 전달
           onConfirm={() => {}}
         />
       )}
+
+      {/* 여행 삭제 모달 */}
+      <DeleteTripModal
+        isOpen={isDeleteTripModalOpen}
+        onClose={handleCancelDeleteTrip}
+        onConfirm={handleConfirmDeleteTrip}
+      />
+
+      {/* 장소 삭제 모달 */}
+      <DeletePlacesModal
+        isOpen={isDeletePlaceModalOpen}
+        onClose={handleCancelDeletePlace}
+        onConfirm={handleConfirmDeletePlace}
+      />
     </Container>
   );
 };
@@ -240,7 +328,7 @@ const RightColumn = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
-    height: 50vh;
+    height: 40vh;
   }  
 `;
 
@@ -256,12 +344,34 @@ const MapWrapper = styled.div`
 const TripInfo = styled.div`
   text-align: left;
   margin-bottom: 20px;
+  position: relative; /* X 버튼을 위치시키기 위해 상대적 위치 지정 */
 `;
 
 const TripTitle = styled.h1`
   font-size: 28px;
   font-weight: bold;
   margin: 0;
+`;
+
+const DeleteTripButton = styled.button`
+  position: absolute;
+  right: 0;
+  top: 8px;
+  background: none;
+  border: none;
+  color: black;
+  cursor: pointer;
+  font-size: 20px;
+  
+  &:hover {
+    color: red;
+    transition: color 0.3s ease; /* 색상 변화가 0.3초 동안 부드럽게 진행되도록 설정 */
+  }
+
+  &:active {
+    color: darkred;
+    transform: scale(0.94);
+  }
 `;
 
 const TripDestination = styled.div`
@@ -290,9 +400,14 @@ const EditButton = styled.button`
   border-radius: 20px;
   font-size: 14px;
   cursor: pointer;
+  transition: background-color 0.3s;
 
   &:hover {
     background-color: #e87a00;
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
@@ -384,4 +499,29 @@ const PlaceContent = styled.div`
   font-size: 16px;
   font-weight: bold;
   color: #333;
+`;
+
+const DeleteButton = styled.button`
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+
+  &:hover {
+    color: red;
+    transition: color 0.3s ease; /* 색상 변화가 0.3초 동안 부드럽게 진행되도록 설정 */
+  }
+
+  &:active {
+    color: darkred; /* 클릭 시 아이콘 색상 변화 */
+    transform: scale(0.90); /* 클릭 시 크기 변화 */
+    transition: transform 0.1s ease; /* 클릭 효과에 대한 부드러운 전환 */
+  }
+`;
+
+const ResultInfo = styled.div`
+  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 `;
