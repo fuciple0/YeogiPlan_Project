@@ -89,7 +89,7 @@ const formatDate = (dateString) => {
    const period = hour >= 12 ? "오후" : "오전";
    hour = hour % 12 || 12; // 0시를 12시로 변환
    
-   // 원하는 형식으로 문자열 조합 (초 제외)
+   // 원하는 형식으로 문자열 조합 (초 제외)함
    return `${year}. ${month}. ${day}. ${period} ${hour}:${minute}`;
  };
 
