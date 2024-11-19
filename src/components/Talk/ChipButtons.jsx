@@ -5,14 +5,15 @@ import { FaPenToSquare } from "react-icons/fa6";
 
 
 
-const ChipButtons = ({ onOpenModal }) => (
+const ChipButtons = ({ onOpenModal,onSelectTag  }) => (
   <ChipContainer>
     < WriteChipButton onClick={onOpenModal}>
       <FaPenToSquare /> 글 작성하기
     </ WriteChipButton>
-    <ChipButton>장소</ChipButton>
-    <ChipButton>질문</ChipButton>
-    <ChipButton>날씨</ChipButton>
+    <ChipButton onClick={() => onSelectTag(null)}>전체</ChipButton>
+    <ChipButton onClick={() => onSelectTag('장소')}>장소</ChipButton>
+      <ChipButton onClick={() => onSelectTag('질문')}>질문</ChipButton>
+      <ChipButton onClick={() => onSelectTag('날씨')}>날씨</ChipButton>
   </ChipContainer>
 );
 
@@ -23,7 +24,7 @@ export default ChipButtons;
 const ChipContainer = styled.div`
   display: flex;
   gap: 10px;
-  padding: 10px 0;
+  padding: 3px 0;
 `;
 
 const ChipButton = styled.button`
@@ -71,4 +72,3 @@ const WriteChipButton = styled.button`
     font-size: 16px;
   }
 `;
-

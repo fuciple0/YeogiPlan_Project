@@ -18,8 +18,15 @@ const postsSlice = createSlice({
         post.comment_count += increment; // 댓글 수 업데이트
       }
     },
+    // addComment(state, action) {
+    //   const { talk_id, comment } = action.payload;
+    //   const post = state.posts.find((post) => post.talk_id === talk_id);
+    //   if (post) {
+    //     post.comments = [...(post.comments || []), comment]; // 기존 댓글에 새 댓글 추가
+    //   }
+    // },
   },
 });
 
-export const { setPosts, updateCommentCount } = postsSlice.actions;
+export const { setPosts, updateCommentCount} = postsSlice.actions;
 export default postsSlice.reducer;

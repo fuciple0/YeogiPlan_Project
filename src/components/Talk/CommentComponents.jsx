@@ -1,52 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
+import { deleteComment } from '../../services/commentsHelper';
 import defaultProfileImage from '../../assets/user_profile.png'; 
 
-const CommentComponents = ({ comments, userInfo, onCommentSubmit }) => {
+const CommentComponents = ({  comments, userInfo, onCommentSubmit,onDeleteComment  }) => {
   const [commentText, setCommentText] = useState("");
-  const [replyText, setReplyText] = useState(""); // 대댓글 입력 필드
-  const [replyTo, setReplyTo] = useState(null); // 대댓글을 작성 중인 comment_id
 
   
-  
-const formatDate = (dateString) => {
-    // "2024-11-12T14:05:52.000Z" 형태의 문자열에서 필요한 부분 추출
-     const [datePart, timePart] = dateString.split("T");
-     const [year, month, day] = datePart.split("-");
-     let [hour, minute] = timePart.split(":");
-     
-     // 시간 형식을 12시간제로 변환하고 오전/오후 결정
-     const period = hour >= 12 ? "오후" : "오전";
-     hour = hour % 12 || 12; // 0시를 12시로 변환
-     
-     // 원하는 형식으로 문자열 조합 (초 제외)
-     return `${year}. ${month}. ${day}. ${period} ${hour}:${minute}`;
-   };
- 
-
-  
-  const ReplyProfileImage = ({ profilePhoto }) => {
-    const imageURL = profilePhoto 
-      ? `http://15.164.142.129:3001/${profilePhoto.replace(/\\/g, "/")}` 
-      : defaultProfileImage;
-  
-    return (
-      <img 
-        src={imageURL} 
-        alt="댓글 프로필 이미지" 
-        style={{ width: 30, height: 30, borderRadius: '50%', marginLeft: 40 }} 
-      />
-    );
-  };
-
-  const handleReplySubmit = (parent_id) => {
-    if (replyText.trim()) {
-      onCommentSubmit(replyText, parent_id); // 대댓글 전송
-      setReplyText(""); // 입력 필드 초기화
-      setReplyTo(null); // 대댓글 입력창 닫기
-    }
-  };
-
   return (
     <>
       <CommentContainer>
@@ -61,8 +22,7 @@ const formatDate = (dateString) => {
             onCommentSubmit(commentText); // 댓글 전송
             setCommentText(""); // 입력 필드 초기화
           }}
-        >
-          댓글 작성
+        > 댓글 작성
         </ReplyButton>
       </CommentContainer>
       
@@ -78,54 +38,62 @@ const formatDate = (dateString) => {
                 </CommentHeader>
                 <CommentText>{comment.contents}</CommentText>
                 <CommentFooter>
-                  <CommentTime>{formatDate(comment.comment_at)}</CommentTime>
-                  {/* <ReplyButton2 onClick={() => setReplyTo(comment.comment_id)}>
-                    답글
-                  </ReplyButton2> */}
+                <CommentTime>{formatDate(comment.comment_at)}</CommentTime>
+                 {/* 삭제 버튼 */}
+                 {userInfo?.userId === comment.user_id && (
+                  <DeleteButton
+                    onClick={() => {
+                      if (window.confirm("댓글을 삭제하시겠습니까?")) {
+                        onDeleteComment(comment.comment_id);
+                      }
+                    }}
+                  >
+                    삭제
+                  </DeleteButton>
+                 )}
                 </CommentFooter>
-
-                {/* 대댓글 입력창 */}
-                {replyTo === comment.comment_id && (
-                  <ReplyInputContainer>
-                    <ReplyInput
-                      type="text"
-                      placeholder="답글을 입력하세요"
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                    />
-                    <SubmitReplyButton onClick={() => handleReplySubmit(comment.comment_id)}>
-                      작성
-                    </SubmitReplyButton>
-                  </ReplyInputContainer>
-                )}
               </CommentContent>
             </CommentItem>
-
-            {/* 대댓글 렌더링 */}
-            {comments
-              .filter((reply) => reply.parent_id === comment.comment_id)
-              .map((reply) => (
-                <CommentItem key={reply.comment_id} style={{ marginLeft: '40px' }}>
-                  <ReplyProfileImage profilePhoto={reply.user?.profile_photo || defaultProfileImage} alt="프로필 이미지" />
-                  <CommentContent>
-                    <CommentHeader>
-                      <CommentUser>{comment.nickname }</CommentUser>
-                    </CommentHeader>
-                    <CommentText>{reply.contents}</CommentText>
-                    <CommentFooter>
-                      <CommentTime>{formatDate(reply.comment_at)}</CommentTime>
-                    </CommentFooter>
-                  </CommentContent>
-                </CommentItem>
-              ))}
-          </>
+            </>
         ))}
       </CommentList>
     </>
   );
 };
-
 export default CommentComponents;
+
+
+const ReplyProfileImage = ({ profilePhoto }) => {
+  const imageURL = profilePhoto 
+    ? `http://15.164.142.129:3001/${profilePhoto.replace(/\\/g, "/")}` 
+    : defaultProfileImage;
+
+  return (
+    <img 
+      src={imageURL} 
+      alt="댓글 프로필 이미지" 
+      style={{ width: 30, height: 30, borderRadius: '50%', marginLeft: 40 }} 
+    />
+  );
+};
+
+  
+const formatDate = (dateString) => {
+
+ // "2024-11-12T14:05:52.000Z" 형태의 문자열에서 필요한 부분 추출
+   const [datePart, timePart] = dateString.split("T");
+   const [year, month, day] = datePart.split("-");
+   let [hour, minute] = timePart.split(":");
+   
+   // 시간 형식을 12시간제로 변환하고 오전/오후 결정
+   const period = hour >= 12 ? "오후" : "오전";
+   hour = hour % 12 || 12; // 0시를 12시로 변환
+   
+   // 원하는 형식으로 문자열 조합 (초 제외)
+   return `${year}. ${month}. ${day}. ${period} ${hour}:${minute}`;
+ };
+
+
 
 
 // 스타일 컴포넌트들
@@ -133,13 +101,6 @@ const CommentContainer = styled.div`
   display: flex;
   align-items: center;
   margin: 10px 0;
-`;
-
-const ReplyProfileImage = styled.img`
-  width: 30px;
-  height: 30px;
-  margin-left: 40px;
-  border-radius: 50%;
 `;
 
 const CommentInput = styled.input`
@@ -155,16 +116,6 @@ const ReplyButton = styled.button`
   color: #fff;
   border: none;
   padding: 8px 16px;
-  border-radius: 4px;
-  margin-left: 10px;
-  cursor: pointer;
-`;
-
-const ReplyButton2 = styled.button`
-  /* background-color: #507DBC; */
-  color: #111010;
-  border: none;
-  padding: 6px 12px;
   border-radius: 4px;
   margin-left: 10px;
   cursor: pointer;
@@ -218,26 +169,22 @@ const CommentTime = styled.span`
   margin-top: 4px 0 0 0;
 `;
 
-const ReplyInputContainer = styled.div`
-  display: flex;
-  align-items: center;
-  margin-top: 8px;
-  margin-left: 40px;
-`;
+  const DeleteButton = styled.button`
+  background-color: #c0b3b4; /* 빨간색 배경 */
+  color: white; /* 텍스트 색상 */
+  border: none; /* 테두리 제거 */
+  border-radius: 4px; /* 약간의 둥근 모서리 */
+  padding: 4px 8px; /* 내부 여백 */
+  margin-left: 10px;
+  font-size: 12px; /* 글자 크기 */
+  cursor: pointer; /* 클릭 가능한 커서 */
+  transition: background-color 0.3s ease; /* 호버 효과 전환 */
 
-const ReplyInput = styled.input`
-  flex: 1;
-  padding: 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-`;
+  &:hover {
+    background-color: #4e4a4b; /* 호버 시 더 어두운 빨간색 */
+  }
 
-const SubmitReplyButton = styled.button`
-  background-color: #507dbc;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  margin-left: 8px;
-  cursor: pointer;
+  &:active {
+    background-color: #5c5657; /* 클릭 시 더 어두운 빨간색 */
+  }
 `;
