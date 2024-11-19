@@ -113,6 +113,7 @@ const Card = styled.div`
     overflow: hidden;
     border-radius: 8px;
     box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.3); /* 기본 그림자 */
+    cursor: pointer;  /* 커서를 클릭 모양으로 변경 */
 
     img {
         width: 100%;

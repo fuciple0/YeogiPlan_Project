@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { FaStar, FaCheck, FaPlus } from "react-icons/fa";
 import { IoIosWarning } from "react-icons/io";
 import styled from "styled-components";
-import Skeleton from "./Skeleton";
-import DateSelectModal from "./DateSelectModal";
-import { addTripData } from "../store/placeSlice"; // Redux 액션 추가
+import Skeleton from "../Effect/Skeleton";
+import DateSelectModal from "../Planning/DateSelectModal";
+import { addTripData } from "../../store/placeSlice"; // Redux 액션 추가
 
 const SearchModal = ({ isOpen, onClose }) => {
     const [searchInput, setSearchInput] = useState("");
@@ -18,12 +18,21 @@ const SearchModal = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    const userId = useSelector((state) => state.user.userInfo.userId);
+    const isLoggedIn = useSelector((state) => state.user.isLoggedIn); // 로그인 상태 확인
+
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            handleSearch()
+        }
+    }
+
     const handleSearch = async () => {
         if (!searchInput) return;
 
         setIsLoading(true);
 
-        const url = `http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${searchInput}`;
+        const url = `http://3.36.99.105:3001/googleApi/keywordSearch?searchTerm=${searchInput}`;
 
         try {
             const response = await fetch(url);
@@ -58,6 +67,7 @@ const SearchModal = ({ isOpen, onClose }) => {
         setSelectedItems([]);
         setSearchInput("");
         setSearchResults([]);
+        setIsDateSelectOpen(false)
         onClose();
     };
 
@@ -66,7 +76,13 @@ const SearchModal = ({ isOpen, onClose }) => {
             alert("추가할 장소를 선택해주세요!");
             return;
         }
-        setIsDateSelectOpen(true); // DateSelectModal 열기
+
+        if (!isLoggedIn) {
+            alert('로그인이 필요합니다.')
+            navigate('/login')
+        } else {
+            setIsDateSelectOpen(true); // DateSelectModal 열기
+        }
     };
 
     const handleDateSelectClose = () => {
@@ -97,7 +113,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            user_id: 1, // 실제 user_id로 변경 필요
+                            user_id: userId, // 실제 user_id로 변경 필요
                             trip_day: 1, // 기본값 또는 실제 여행 일정에 따라 설정
                             place_name: place.name,
                             place_name_x: place.location.lat,
@@ -136,12 +152,13 @@ const SearchModal = ({ isOpen, onClose }) => {
             <Overlay onClick={handleClose}>
                 <ModalContent onClick={(e) => e.stopPropagation()}>
                     <SearchContainer>
-                        <SearchInput 
-                            value={searchInput} 
+                        <SearchInput
+                            value={searchInput}
                             onChange={handleInputChange}
-                            placeholder="장소를 검색해보세요" 
+                            placeholder="장소를 검색해보세요"
+                            onKeyPress={handleKeyPress}
                         />
-                        <SearchButton onClick={handleSearch}>검색</SearchButton> 
+                        <SearchButton onClick={handleSearch}>검색</SearchButton>
                     </SearchContainer>
 
                     <ResultsHeader>검색결과</ResultsHeader>
@@ -164,7 +181,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                                     <ResultInfo>
                                         <ResultTitle>{result.name}</ResultTitle>
                                         <ResultDescription>
-                                            <FaStar color="#ffb535" size={16}/> {/* 별 아이콘 */}
+                                            <FaStar color="#ffb535" size={16} /> {/* 별 아이콘 */}
                                             <span>{result.rating ? result.rating.toFixed(1) : "없음"}</span> {/* 별점 수 표시 */}
                                         </ResultDescription>
                                     </ResultInfo>
