@@ -202,9 +202,14 @@ const ScrollContainer = styled.div`
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
-    display: none; /* 스크롤바 숨기기 */
+    display: none;
+  }
+
+  @media (max-width: 480px) {
+    gap: 0.5rem;
   }
 `;
+
 
 const StampContainer = styled.div`
   display: flex;
@@ -258,27 +263,32 @@ const StampContent = styled.div`
   &:hover {
     transform: scale(1.1);
   }
+
+  @media (max-width: 480px) {
+    width: 6rem;
+    height: 6rem;
+  }
 `;
 
 const CertifiedBackground = styled.div`
   position: absolute;
-  inset: 0;
+  inset: 10%; /* 여백 추가: 텍스트가 테두리에서 떨어지도록 설정 */
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.2;
+  opacity: 0.15; /* 조금 더 투명하게 */
   pointer-events: none;
   transform: rotate(-25deg);
-  font-size: 2rem;
+  font-size: 1.5rem; /* 텍스트 크기 조정 */
   font-weight: bold;
-  color: #777;  /* 기본 텍스트 색상 */
+  color: #777;
 
-  /* 텍스트에 테두리 효과 추가 */
-  -webkit-text-stroke: 1px #ffffff;  /* 테두리 색상 */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);  /* 테두리의 뚜렷한 느낌을 위해 그림자 추가 */
+  /* 텍스트 테두리 효과 */
+  -webkit-text-stroke: 0.5px #ffffff; /* 테두리 크기 줄이기 */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 그림자 효과 약화 */
 
   /* 색 반전 효과 */
-  filter: invert(1);  /* 색상 반전 (모든 색상 반전) */
+  filter: invert(0.8); /* 색상 반전 유지 (더 약하게 적용 가능) */
 `;
 
 const StampBorder = styled.div`
@@ -297,9 +307,13 @@ const StampBorder = styled.div`
 const PlaceName = styled.p`
   font-size: 1.2rem;
   font-weight: 600;
-  color: #2c5c9d ;
+  color: #2c5c9d;
   text-align: center;
   word-break: keep-all;
+
+  @media (max-width: 480px) {
+    font-size: 1rem;
+  }
 `;
 
 const LoadingMessage = styled.div`
@@ -316,24 +330,29 @@ const ErrorMessage = styled.div`
 
 
 const TripPlanCard = styled.div`
-  background: linear-gradient(135deg, #2c5c9d, #8ebfd7, #4a6b9a); /* 3가지 색상 그라디언트 */
-  border-radius: 20px; /* 둥근 모서리 */
-box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
-padding: 20px 30px;
-margin: 20px auto;
-width: 100%;
-max-width: 900px;
-transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; /* 애니메이션 추가 */
+  background: linear-gradient(135deg, #2c5c9d, #8ebfd7, #4a6b9a);
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 20px 30px;
+  margin: 20px auto;
+  width: 100%;
+  max-width: 900px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 
-&:hover {
-  transform: translateY(-10px); /* hover 시 카드가 살짝 떠오르는 효과 */
-  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2); /* hover 시 그림자 강조 */
-  background: linear-gradient(135deg, #8ebfd7, #4a6b9a, #2c5c9d); /* hover 시 그라디언트 방향 변경 */
-}
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #8ebfd7, #4a6b9a, #2c5c9d);
+  }
 
-&:active {
-  transform: scale(0.98); /* 클릭 시 살짝 작아지는 효과 */
-}
+  &:active {
+    transform: scale(0.98);
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 16px;
+    margin: 8px auto;
+  }
 `;
 
 const Carddate = styled.p`
@@ -341,11 +360,20 @@ const Carddate = styled.p`
   color: #b0c6d1;
   margin-bottom: 15px;
   font-weight: bold;
+
+  @media (max-width: 480px) {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
 `;
 
 const CardTitle = styled.h2`
   font-size: 1.8rem;
   font-weight: 700;
-  color:  #ffffff  ;
+  color: #ffffff;
   margin-bottom: 10px;
+
+  @media (max-width: 480px) {
+    font-size: 1.5rem;
+  }
 `;
