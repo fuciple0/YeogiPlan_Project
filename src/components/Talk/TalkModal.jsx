@@ -26,6 +26,8 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
 
     const handleConfirm = () => {
     console.log("최종 확인 - 선택된 태그:", selectedTags);
+    console.log("TalkModal에서 handleConfirm 호출");
+    console.log("전달된 onConfirm:", onConfirm);
     onConfirm(title, content,selectedTags); // 상위 컴포넌트에 제목과 내용을 전달
     setTitle(''); // 입력값 초기화
     setContent('');
@@ -87,15 +89,13 @@ const TalkModal = ({ isOpen, onClose ,onConfirm }) => {
 export default TalkModal;
 
 // 리덕스 테스트용 스타일
-const UserInfoContainer = styled.div`
-  margin: 20px 0;
-  padding: 10px;
-  background-color: #f7f7f7;
-  border-radius: 8px;
-  color: #333;
-`;
-
-
+// const UserInfoContainer = styled.div`
+//   margin: 20px 0;
+//   padding: 10px;
+//   background-color: #f7f7f7;
+//   border-radius: 8px;
+//   color: #333;
+// `;
 
 const Divider = styled.div`
   height: 0.5px;
