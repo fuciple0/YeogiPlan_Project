@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'; // useNavigate 가져오기
 import styled from 'styled-components';
 import { logoutUser } from '../store/userSlice';
 import default_profile from '../assets/user_profile.png';
-import ProfileEditModal from '../components/ProfileEditModal';
+import ProfileEditModal from '../components/MyPage/ProfileEditModal';
 import SharedTripStamps from '../components/Mypage/MyTripPlan';
 import { FaEdit, FaSignOutAlt } from 'react-icons/fa'; // edit과 logout 아이콘
 
@@ -114,6 +114,11 @@ const ProfileSection = styled.div`
   align-items: center; /* 세로 가운데 정렬 */
   width: 100%;
   margin-bottom: 40px;
+
+  @media (max-width: 768px) {
+    flex-direction: column; /* 화면이 좁아지면 세로 정렬 */
+    align-items: center; /* 가운데 정렬 */
+  }
 `;
 
 
@@ -123,13 +128,25 @@ const ProfileDetails = styled.div`
   flex-direction: column;
   gap: 1px; /* 각 요소 간의 일정한 간격을 제공 */
   width: 60%; /* 전체 폭에 맞게 */
+
+  @media (max-width: 768px) {
+    margin-left: 0; /* 세로 정렬 시 여백 제거 */
+    width: 100%; /* 화면에 맞게 폭 조정 */
+    text-align: center; /* 가운데 정렬 */
+  }
 `;
 
 const ProfileImageWrapper = styled.div`
   width: 35%; /* 이미지 영역 크기 */
   display: flex;
   justify-content: flex-end; /* 오른쪽 정렬 */
-  margin-right: 20px; /* 오른쪽 여백 추가 (약간만 띄움) */
+  margin-right: 20px; /* 오른쪽 여백 추가 */
+
+  @media (max-width: 768px) {
+    justify-content: center; /* 세로 정렬 시 가운데 배치 */
+    margin-right: 0; /* 여백 제거 */
+    width: 100%; /* 폭 조정 */
+  }
 `;
 
 const ProfileImage = styled.img`
@@ -139,6 +156,16 @@ const ProfileImage = styled.img`
   object-fit: cover;
   border: 4px solid #fff; /* 테두리 추가 */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+
+  @media (max-width: 768px) {
+    width: 120px; /* 작은 화면에서 크기 줄이기 */
+    height: 120px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100px; /* 더 작은 화면에서는 더 줄이기 */
+    height: 100px;
+  }
 `;
 
 const Nickname = styled.p`

@@ -127,4 +127,40 @@ export const fetchPosts = async (page, limit) => {
       return false;
     }
   };
+
+
   
+
+// 태그를 기준으로 게시글 목록 가져오기
+export const fetchPostsByTag = async (tag, page = 1, limit = 10) => {
+  const endpoint = `http://15.164.142.129:3001/api/talk_board/by_tag?tag=${encodeURIComponent(tag)}&page=${page}&limit=${limit}`;
+  console.log("API 호출 URL:", endpoint); // 디버깅 로그
+  console.log("태그 값:", tag); // 전달된 태그 값 확인
+ 
+  try {
+    const response = await fetch(
+      `http://15.164.142.129:3001/api/talk_board/by_tag?tag=${encodeURIComponent(tag)}&page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (response.ok) {
+      const responseData = await response.json();
+      console.log("서버에서 가져온 필터링된 게시글 데이터:", responseData);
+      return {
+        posts: responseData.data || [],
+        pagination: responseData.pagination,
+      };
+    } else {
+      console.error("게시글 목록을 가져오는 데 실패했습니다.");
+      return { posts: [], pagination: { totalPages: 1 } };
+    }
+  } catch (error) {
+    console.error("Error fetching posts by tag:", error);
+    return { posts: [], pagination: { totalPages: 1 } };
+  }
+};

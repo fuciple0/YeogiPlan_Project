@@ -2,20 +2,36 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { FaStar, FaCheck, FaPlus } from "react-icons/fa";
 import { IoIosWarning } from "react-icons/io";
-import Skeleton from "./Skeleton";
+import Skeleton from "../Effect/Skeleton";
+import { useDispatch, useSelector } from "react-redux";
+import { addPlace } from "../../store/placeSlice";
 
-const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
+const AddPlacesModal = ({ isOpen, onClose, onConfirm, dayIndex, tripId }) => {
     const [searchInput, setSearchInput] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    const dispatch = useDispatch();
+    const userId = useSelector((state) => state.user.userInfo.userId); // userId 가져오기
+
+    // Redux에서 현재 dayIndex에 해당하는 기존 장소 가져오기
+    const existingPlaces = useSelector((state) =>
+        state.places.selectedPlaces.filter((place) => place.trip_day === dayIndex + 1)
+    );
+
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            handleSearch()
+        }
+    }
 
     const handleSearch = async () => {
         if (!searchInput) return;
 
         setIsLoading(true);
 
-        const url = `http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${searchInput}`;
+        const url = `http://3.36.99.105:3001/googleApi/keywordSearch?searchTerm=${searchInput}`;
 
         try {
             const response = await fetch(url);
@@ -53,13 +69,57 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
         onClose();
     };
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (selectedItems.length === 0) {
             alert("추가할 장소를 선택해주세요!");
             return;
         }
-        onConfirm(selectedItems);
-        handleClose();
+
+        try {
+            // Redux 상태와 서버 동기화
+            await Promise.all(
+                selectedItems.map(async (place, index) => {
+                    const orderNo = existingPlaces.length + index + 1; // 기존 장소 기반 order_no 계산
+                    const newPlace = {
+                        ...place,
+                        trip_day: dayIndex + 1,
+                        order_no: orderNo,
+                    };
+                    dispatch(addPlace({ dayIndex, newPlace }));
+
+                    // 서버에 데이터 추가
+                    const response = await fetch(
+                        `http://15.164.142.129:3001/api/trip_plan/${tripId}/detail`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                user_id: userId,
+                                trip_day: dayIndex + 1,
+                                place_name: place.name,
+                                place_name_x: place.location.lat,
+                                place_name_y: place.location.lng,
+                                place_id: place.place_id,
+                                memo: null,
+                                memo_type: "love",
+                                order_no: orderNo, // 서버에 동기화된 order_no 전달
+                                review_id: null,
+                            }),
+                        }
+                    );
+
+                    if (!response.ok) throw new Error("데이터베이스 저장 실패");
+                })
+            );
+
+            console.log("장소가 성공적으로 추가되었습니다!");
+            onConfirm(selectedItems);
+        } catch (error) {
+            console.error("장소 추가 중 오류: ", error);
+            alert("장소 추가에 실패했습니다. 서버 오류: " + error.message);
+        } finally {
+            handleClose();
+        }
     };
 
     if (!isOpen) return null;
@@ -68,12 +128,13 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
         <Overlay onClick={handleClose}>
             <ModalContent onClick={(e) => e.stopPropagation()}>
                 <SearchContainer>
-                    <SearchInput 
-                        value={searchInput} 
+                    <SearchInput
+                        value={searchInput}
                         onChange={handleInputChange}
-                        placeholder="장소를 검색해보세요" 
+                        placeholder="장소를 검색해보세요"
+                        onKeyPress={handleKeyPress}
                     />
-                    <SearchButton onClick={handleSearch}>검색</SearchButton> 
+                    <SearchButton onClick={handleSearch}>검색</SearchButton>
                 </SearchContainer>
 
                 <ResultsHeader>검색 결과</ResultsHeader>
@@ -83,9 +144,8 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
                             <SkeletonResultItem key={index}>
                                 <Skeleton width="60px" height="60px" />
                                 <ResultInfo>
-                                    <Skeleton width="80%" height="16px" />
-                                    <Skeleton width="60%" height="14px" />
                                     <Skeleton width="40%" height="14px" />
+                                    <Skeleton width="20%" height="14px" />
                                 </ResultInfo>
                             </SkeletonResultItem>
                         ))
@@ -96,7 +156,7 @@ const AddPlacesModal = ({ isOpen, onClose, onConfirm }) => {
                                 <ResultInfo>
                                     <ResultTitle>{result.name}</ResultTitle>
                                     <ResultDescription>
-                                        <FaStar color="#ffb535" size={16}/> {/* 별 아이콘 */}
+                                        <FaStar color="#ffb535" size={16} /> {/* 별 아이콘 */}
                                         <span>{result.rating ? result.rating.toFixed(1) : "없음"}</span> {/* 별점 수 표시 */}
                                     </ResultDescription>
                                 </ResultInfo>

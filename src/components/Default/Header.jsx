@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import logo from '../assets/logo.png';
-import { loadUser, logoutUser } from '../store/userSlice';
+import logo from '../../assets/logo_img/logo.png';
+import { loadUser, logoutUser } from '../../store/userSlice';
 
 const HeaderContainer = styled.header`
   background-color: white;
@@ -25,6 +25,7 @@ const Logo = styled.img`
   max-width: 150px;
   height: auto;
   margin-right: 10px;
+  cursor: pointer;
 `;
 
 const NavList = styled.ul`
@@ -150,7 +151,9 @@ const Header = () => {
   return (
     <HeaderContainer>
       <LogoSection>
-        <Logo src={logo} alt="logo" />
+        <Link to="/">
+          <Logo src={logo} alt="logo" />
+        </Link>
       </LogoSection>
       
       <nav>

@@ -51,6 +51,13 @@ const MapComponent = ({ selectedPlaces }) => {
         }
     }, [selectedPlaces]);
 
+    // trip_day별로 장소를 그룹화
+    const groupedPlaces = selectedPlaces.reduce((acc, place) => {
+        if (!acc[place.trip_day]) acc[place.trip_day] = [];
+        acc[place.trip_day].push(place);
+        return acc;
+    }, {});
+
   return (
     <MapContainer>
         <LoadScript googleMapsApiKey={apiKey}>
@@ -60,26 +67,28 @@ const MapComponent = ({ selectedPlaces }) => {
                 zoom={mapZoom}
                 options={mapOptions}
             >
-                {selectedPlaces.map((place, index) => (
-                    place.lat && place.lng ? (
-                        <MarkerF
-                            key={place.place_id}
-                            position={{ lat: place.lat, lng: place.lng }}
-                            label={{
-                                text: `${index + 1}`,
-                                color: "white",
-                                fontSize: "12px",
-                            }}
-                            icon={{
-                                path: window.google.maps.SymbolPath.CIRCLE,
-                                scale: 8,
-                                    fillColor: colors[(place.trip_day - 1) % colors.length],  // trip_day 값에 따라 색상 변경
-                                fillOpacity: 1,
-                                strokeWeight: 1,
-                            }}
-                            />
-                        ) : null
-                ))}
+                    {Object.entries(groupedPlaces).map(([day, places]) =>
+                        places.map((place, index) => (
+                            place.lat && place.lng ? (
+                                <MarkerF
+                                    key={place.place_id}
+                                    position={{ lat: place.lat, lng: place.lng }}
+                                    label={{
+                                        text: `${index + 1}`, // DAY별로 1부터 시작
+                                        color: "white",
+                                        fontSize: "12px",
+                                    }}
+                                    icon={{
+                                        path: window.google.maps.SymbolPath.CIRCLE,
+                                        scale: 8,
+                                        fillColor: colors[(day - 1) % colors.length], // trip_day 값에 따라 색상 변경
+                                        fillOpacity: 1,
+                                        strokeWeight: 1,
+                                    }}
+                                />
+                            ) : null
+                        ))
+                    )}
             </GoogleMap>
         </LoadScript>
     </MapContainer>

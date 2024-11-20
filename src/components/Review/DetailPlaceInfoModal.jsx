@@ -11,7 +11,7 @@ import ReviewList from './ReviewList';
 const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
 
   if (!isOpen || !place) return null;
- 
+
 
   const [apiData, setApiData] = useState(null);
   const [rating, setRating] = useState(4.8);  // 기본 rating 값
@@ -23,7 +23,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
 
   useEffect(() => {
     if (place && place.name) {
-      fetch(`http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${encodeURIComponent(place.name)}`)
+      fetch(`http://3.36.99.105:3001/googleApi/keywordSearch?searchTerm=${encodeURIComponent(place.name)}`)
         .then(response => response.json())
         .then(data => {
           if (data.places && data.places[0]) {
@@ -49,7 +49,7 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
   const handleRatingClick = (rate) => {
     setRating(rate);
     setShowReviewForm(true);
-    // setShowReviewList(true); 
+    // setShowReviewList(true);
   };
 
   const handleReviewSubmit = (reviewText, selectedImages) => {
@@ -76,69 +76,72 @@ const DetailPlaceInfoModal = ({ isOpen, onClose, place }) => {
   return (
     <Overlay onClick={onClose}>
       <ModalContent onClick={(e) => e.stopPropagation()}>
-        <TopSection>
-          <ImageContainer>
-            <PlaceImage src={place.imageUrl} alt={place.name} />
-          </ImageContainer>
-          <InfoContainer>
-            <PlaceName>{place.name}</PlaceName>
-            <PlaceDescription>
-              {apiData?.description || ""}
-            </PlaceDescription>
-            <Rating>
-              <FaStar color="#FFC978" /> {rating}
-            </Rating>
-            <Details>
-              <DetailItem><strong>주소:</strong> {apiData?.address || ""}</DetailItem>
-              <DetailItem>
-                <strong>운영시간:</strong>
-                {apiData?.hours && apiData.hours.length > 0 ? (
-                  apiData.hours.map((hour, index) => (
-                    <span key={index}>{hour}<br /></span>
-                  ))
-                ) : ""}
-              </DetailItem>
-              <DetailItem><strong>전화번호:</strong> {apiData?.phone || ""}</DetailItem>
-              <DetailItem><strong>휴무일:</strong> {apiData?.holidays || ""}</DetailItem>
-            </Details>
-          </InfoContainer>
-        </TopSection>
-        <BottomSection>
-          <ReviewTitle>리뷰</ReviewTitle>
-          <StarContainer>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <StarIcon
-                key={star}
-                selected={star <= (hoveredRating || rating)}
-                onClick={() => handleRatingClick(star)}
-                onMouseEnter={() => setHoveredRating(star)}
-                onMouseLeave={() => setHoveredRating(0)}
-              >
-                <FaStar />
-              </StarIcon>
-            ))}
-          </StarContainer>
-          {!showReviewForm && <ReviewMessage>별점을 남겨주세요!</ReviewMessage>}
-          {/* <ReviewFormContainer show={showReviewForm ? true : undefined}> */}
-          <ReviewFormContainer show={showReviewForm}>
-            {showReviewForm && (
-              <ReviewForm
-                onSubmit={handleReviewSubmit}
-                onCancel={handleReviewCancel}
-                placeId={placeId}
-                placeName={place.name}
-                rating={rating}
-              />
-            )}
-          </ReviewFormContainer>
+        <ContentWrapper>
+          <TopSection>
+            <ImageContainer>
+              <PlaceImage src={place.imageUrl} alt={place.name} />
+            </ImageContainer>
+            <InfoContainer>
+              <PlaceName>{place.name}</PlaceName>
+              <PlaceDescription>
+                {apiData?.description || ""}
+              </PlaceDescription>
+              <Rating>
+                <FaStar color="#FFC978" /> {rating}
+              </Rating>
+              <Details>
+                <DetailItem><strong>주소:</strong> {apiData?.address || ""}</DetailItem>
+                <DetailItem>
+                  <strong>운영시간:</strong>
+                  {apiData?.hours && apiData.hours.length > 0 ? (
+                    apiData.hours.map((hour, index) => (
+                      <span key={index}>{hour}<br /></span>
+                    ))
+                  ) : ""}
+                </DetailItem>
+                <DetailItem><strong>전화번호:</strong> {apiData?.phone || ""}</DetailItem>
+                <DetailItem><strong>휴무일:</strong> {apiData?.holidays || ""}</DetailItem>
+              </Details>
+            </InfoContainer>
+          </TopSection>
 
-          <ReviewList placeId={placeId} />
-          
-        </BottomSection>
+          <BottomSection>
+            <ReviewTitle>리뷰</ReviewTitle>
+            <StarContainer>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <StarIcon
+                  key={star}
+                  selected={star <= (hoveredRating || rating)}
+                  onClick={() => handleRatingClick(star)}
+                  onMouseEnter={() => setHoveredRating(star)}
+                  onMouseLeave={() => setHoveredRating(0)}
+                >
+                  <FaStar />
+                </StarIcon>
+              ))}
+            </StarContainer>
+            {!showReviewForm && <ReviewMessage>별점을 남겨주세요!</ReviewMessage>}
+            <ReviewFormContainer show={showReviewForm}>
+              {showReviewForm && (
+                <ReviewForm
+                  onSubmit={handleReviewSubmit}
+                  onCancel={handleReviewCancel}
+                  placeId={placeId}
+                  placeName={place.name}
+                  rating={rating}
+                />
+              )}
+            </ReviewFormContainer>
+
+
+            <ReviewList placeId={placeId} />
+
+          </BottomSection>
+        </ContentWrapper>
       </ModalContent>
     </Overlay>
   );
-};
+}
 
 export default DetailPlaceInfoModal;
 
@@ -161,18 +164,23 @@ const ModalContent = styled.div`
   flex-direction: column;
   background-color: white;
   width: 70%;
-  height: 80%;
-  min-height: 500px; /* 최소 높이를 500px로 설정하여 작아도 이 높이 이하로 줄어들지 않도록 */
+  max-height: 90vh;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  overflow-y: auto; /* 스크롤 활성화 */
-`
+`;
+
+
+const ContentWrapper = styled.div`
+  max-height: 90vh; /* 모달 전체 높이 제한 */
+  overflow-y: auto; /* 전체 콘텐츠가 스크롤되도록 설정 */
+`;
+
+
 
 const TopSection = styled.div`
   display: flex;
-  overflow: hidden;
+  //overflow: hidden;
 `;
 
 const ImageContainer = styled.div`
@@ -269,8 +277,14 @@ const ReviewMessage = styled.p`
 
 const ReviewFormContainer = styled.div`
   opacity: ${({ show }) => (show ? 1 : 0)};
-  max-height: ${({ show }) => (show ? '500px' : '0px')}; /* 높이 조정으로 부드러운 애니메이션 효과 */
-  overflow: hidden;
-  transition: opacity 0.3s ease, max-height 0.3s ease; /* 애니메이션 속성 */
+  //max-height: ${({ show }) => (show ? '500px' : '0px')}; /* 높이 조정으로 부드러운 애니메이션 효과 */
+  //overflow: hidden;
+  //transition: opacity 0.3s ease, max-height 0.3s ease; /* 애니메이션 속성 */
+  transition: opacity 0.3s ease; /* 애니메이션 효과만 유지 */
   margin-top: ${({ show }) => (show ? '10px' : '0px')};
 `
+
+// 새로 추가된 ReviewListContainer 스타일
+// const ReviewListContainer = styled.div`
+//   margin-top: 20px;
+// `;

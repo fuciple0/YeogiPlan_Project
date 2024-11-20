@@ -5,8 +5,7 @@ import styled from 'styled-components';
 import { fetchPosts, addPost as apiAddPost, deletePost as apiDeletePost } from '../../services/postApi';
 import defaultProfileImage from '../../assets/user_profile.png'; 
 
-
-    // 게시글 작성
+   // 게시글 작성
     const TalkComponent = ({ onAddPost }) => {
     const [posts, setPosts] = useState([]);
     const [page, setPage] = useState(1); // 현재 페이지 번호 상태
@@ -19,14 +18,19 @@ import defaultProfileImage from '../../assets/user_profile.png';
     const addPost = useCallback(
     async (title, content, tag) => {
       const newPost = await apiAddPost(title, content, tag, userInfo);
+      console.log("apiAddPost 호출 결과:", newPost); // 디버깅 추가
       if (newPost) {
         setPosts((prevPosts) => [newPost, ...prevPosts]);
       }
+      console.log("addPost 호출됨:", newPost); 
+      return newPost; // 성공한 게시글 반환
      },
     [userInfo]
   );
 
-  // 페이지 로드 시 게시글 목록 불러오기
+
+
+// 페이지 로드 시 게시글 목록 불러오기
   useEffect(() => {
     const loadPosts = async () => {
       const { posts, pagination } = await fetchPosts(page, limit);
@@ -41,12 +45,16 @@ import defaultProfileImage from '../../assets/user_profile.png';
     loadPosts();
   }, [page, limit]);
 
+
+
   // `onAddPost` 콜백 설정
   useEffect(() => {
     if (onAddPost) onAddPost(addPost);
+    console.log("addPost 전달됨:", addPost); 
   }, [addPost, onAddPost]);
 
-  // 페이지 변경 핸들러
+
+ // 페이지 변경 핸들러
   const handlePageChange = (newPage) => {
     const totalPages = pagination.totalPages || 1;
     if (newPage >= 1 && newPage <= totalPages) {
@@ -58,7 +66,7 @@ import defaultProfileImage from '../../assets/user_profile.png';
 // 게시글 목록 렌더링
    return (
     <>
-      <PostComponents posts={posts} setPosts={setPosts}  />
+      <PostComponents posts={posts} setPosts={setPosts} addPostFunc={addPost} />
       {/* 페이지네이션 컨트롤 */}
       <PaginationContainer>
         <PaginationButton onClick={() => handlePageChange(page - 1)} disabled={page <= 1}>

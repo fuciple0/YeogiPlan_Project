@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import RecommendList from './RecommendList';
 import { Skeleton } from '@mui/material';
-import DateSelectModal from './DateSelectModal';
+import DateSelectModal from '../Planning/DateSelectModal';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { addTripData } from '../store/placeSlice';
+import { addTripData } from '../../store/placeSlice';
 import { useSelector } from 'react-redux';
 
 const BestCardDetailRecommend = ({ item, onClose }) => {
@@ -20,18 +20,19 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
 
   // userSlice에서 user_id 가져오기
   const userId = useSelector((state) => state.user.userInfo.userId);
+  const isLoggedIn = useSelector((state) => state.user.isLoggedIn); // 로그인 상태 확인
 
   useEffect(() => {
     const fetchDescription = async () => {
       try {
-        const keywordResponse = await fetch(`http://43.201.36.203:3001/googleApi/keywordSearch?searchTerm=${item.name}`);
+        const keywordResponse = await fetch(`http://3.36.99.105:3001/googleApi/keywordSearch?searchTerm=${item.name}`);
         const keywordData = await keywordResponse.json();
 
         if (keywordData.places && keywordData.places[0]) {
           const place = keywordData.places[0];
           setDescription(place.description || '정보를 가져올 수 없습니다.');
 
-          const nearbyResponse = await fetch(`http://43.201.36.203:3001/googleApi/nearbySearch?searchTerm=${item.name}`);
+          const nearbyResponse = await fetch(`http://3.36.99.105:3001/googleApi/nearbySearch?searchTerm=${item.name}`);
           const data = await nearbyResponse.json();
 
           if (data && data.nearbyPlaces && Array.isArray(data.nearbyPlaces)) {
@@ -51,9 +52,14 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
     fetchDescription();
   }, [item]);
 
-  // 일정 추가 버튼 클릭 시 일정 날짜 선택 모달을 여는 함수
+  // 일정 추가 버튼 클릭 시 로그인 상태 확인 후 모달 열기
   const handleAddSchedule = () => {
-    setIsDateSelectOpen(true);
+    if (!isLoggedIn) {
+      alert('로그인이 필요합니다.');
+      navigate('/login'); // 로그인 페이지로 이동
+    } else {
+      setIsDateSelectOpen(true); // 로그인 상태가 확인되면 모달 열기
+    }
   };
 
   // 일정 날짜 선택 모달 닫기
@@ -62,58 +68,58 @@ const BestCardDetailRecommend = ({ item, onClose }) => {
   };
 
 
-// DateSelectModal에서 날짜 선택 후 확인 버튼 클릭 시 처리 함수
-const handleDateSelectConfirm = async (tripDataWithId) => {
-  console.log("Received tripDataWithId:", tripDataWithId); // tripDataWithId 확인
+  // DateSelectModal에서 날짜 선택 후 확인 버튼 클릭 시 처리 함수
+  const handleDateSelectConfirm = async (tripDataWithId) => {
+    console.log("Received tripDataWithId:", tripDataWithId); // tripDataWithId 확인
 
-  const tripPlanId = tripDataWithId.trip_plan_id;
-  console.log("tripPlanId:", tripPlanId);
+    const tripPlanId = tripDataWithId.trip_plan_id;
+    console.log("tripPlanId:", tripPlanId);
 
-  // Redux에 tripData와 선택된 장소들 저장
-  const updatedPlacesWithId = await Promise.all(
-    selectedPlaces.map(async (place, index) => {
-      try {
-        const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripPlanId}/detail`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId || 1,
-            trip_day: 1,
-            place_name: place.name,
-            place_name_x: place.location.lat,
-            place_name_y: place.location.lng,
-            place_id: place.place_id,
-            memo: null,
-            memo_type: "love",
-            order_no: index + 1,
-            review_id: null,
-          }),
-        });
+    // Redux에 tripData와 선택된 장소들 저장
+    const updatedPlacesWithId = await Promise.all(
+      selectedPlaces.map(async (place, index) => {
+        try {
+          const response = await fetch(`http://15.164.142.129:3001/api/trip_plan/${tripPlanId}/detail`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user_id: userId || 1,
+              trip_day: 1,
+              place_name: place.name,
+              place_name_x: place.location.lat,
+              place_name_y: place.location.lng,
+              place_id: place.place_id,
+              memo: null,
+              memo_type: "love",
+              order_no: index + 1,
+              review_id: null,
+            }),
+          });
 
-        const result = await response.json();
+          const result = await response.json();
 
-        if (response.ok && result.success) {
-          console.log("장소 저장 성공:", place.name);
-          // 반환된 trip_plan_detail_id와 order_no를 place 객체에 추가
-          return { 
-            ...place, 
-            order_no: result.data.order_no, 
-            trip_plan_detail_id: result.data.trip_plan_detail_id, 
-            location: { lat: place.location.lat, lng: place.location.lng }, // 경도, 위도 포함
-          };
-        } else {
-          console.error("장소 저장 실패:", result.message || response.statusText);
+          if (response.ok && result.success) {
+            console.log("장소 저장 성공:", place.name);
+            // 반환된 trip_plan_detail_id와 order_no를 place 객체에 추가
+            return {
+              ...place,
+              order_no: result.data.order_no,
+              trip_plan_detail_id: result.data.trip_plan_detail_id,
+              location: { lat: place.location.lat, lng: place.location.lng }, // 경도, 위도 포함
+            };
+          } else {
+            console.error("장소 저장 실패:", result.message || response.statusText);
+            return null;
+          }
+        } catch (error) {
+          console.error("API 호출 중 오류:", error);
           return null;
         }
-      } catch (error) {
-        console.error("API 호출 중 오류:", error);
-        return null;
-      }
-       })
+      })
     );
-  
+
     // 성공적으로 저장된 장소만 Redux에 추가
     const successfulPlaces = updatedPlacesWithId.filter(place => place !== null);
 
